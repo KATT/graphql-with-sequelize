@@ -14,7 +14,8 @@ import {
   globalIdField,
   connectionArgs,
   connectionDefinitions,
-  connectionFromPromisedArray
+  connectionFromPromisedArray,
+  connectionFromArraySlice
 } from 'graphql-relay';
 
 const Post = new GraphQLObjectType({
@@ -111,8 +112,30 @@ const queryType = new GraphQLObjectType({
       type: PersonConnection,
       description: 'Person connection test',
       args: connectionArgs,
-      resolve (root, args) {
-        return connectionFromPromisedArray(Db.models.person.findAll(), args);
+      async resolve (root, args) {
+        const {first, after} = args;
+
+        const query = {
+          offset: 0
+        };
+        if (first) {
+          query.limit = first;
+        }
+
+        if (after) {
+          const decoded = new Buffer(after, 'base64').toString();
+          const [arrayconnection, offset] = decoded.split(':');
+          query.offset = parseInt(offset, 10) + 1;
+        }
+
+
+        const {count, rows} = await Db.models.person.findAndCountAll(query);
+        const meta = {
+          sliceStart: query.offset,
+          arrayLength: count
+        };
+
+        return connectionFromArraySlice(rows, args, meta);
       }
     },
     person: {
