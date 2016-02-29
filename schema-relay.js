@@ -5,7 +5,8 @@ import {
   GraphQLString,
   GraphQLInt,
   GraphQLSchema,
-  GraphQLList
+  GraphQLList,
+  GraphQLInputObjectType
 } from 'graphql';
 
 import {
@@ -86,6 +87,12 @@ const personType = new GraphQLObjectType({
           return person.email;
         }
       },
+      age: {
+        type: GraphQLInt,
+        resolve (person) {
+          return person.age;
+        }
+      },
       posts: {
         type: new GraphQLList(Post),
         resolve (person) {
@@ -97,11 +104,151 @@ const personType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
+function connectionDefinitionWithCount(opts) {
+  const {connectionFields, ...other} = opts;
+
+
+  const newConnectionFields = Object.assign({}, connectionFields, {
+    count: {
+      type: GraphQLInt,
+      resolve: ({count}) => count,
+      description: 'A count of the total number of objects in this connection'
+    }
+  });
+
+  return connectionDefinitions({...other, connectionFields: newConnectionFields});
+}
+
 // Connections
-const { connectionType: PersonConnection } = connectionDefinitions({
+const { connectionType: PersonConnection } = connectionDefinitionWithCount({
   name: 'Person',
-  nodeType: personType
+  nodeType: personType,
 });
+
+function getConditionsForField(fieldName, args) {
+  if (args.hasOwnProperty('eq')) {
+    return args.eq;
+  }
+  const conditions = {};
+  for (const operatorName in args) {
+    const value = args[operatorName];
+    
+    conditions['$' + operatorName] = value;
+  }
+
+  return conditions;
+}
+
+function getConditionsFromWhereArg(args) {
+  const where = {};
+
+  for (const fieldName in args) {
+    const conditions = args[fieldName];
+
+    where[fieldName] = getConditionsForField(fieldName, conditions);
+  }
+
+  return where;
+}
+
+function getRelayQueryParams(args) {
+  const {first, after, where} = args;
+
+  const query = {
+    offset: 0
+  };
+  if (first) {
+    query.limit = first;
+  }
+
+  if (after) {
+    const decoded = new Buffer(after, 'base64').toString();
+    const [arrayconnection, offset] = decoded.split(':');
+    query.offset = parseInt(offset, 10) + 1;
+  }
+
+  if (where) {
+    query.where = getConditionsFromWhereArg(where);
+  }
+
+  console.log('getRelayQueryParams query', query);
+
+  return query;
+}
+
+const whereOperatorInputType = (function () {
+  const operatorTypes = {};
+
+  return (inputType) => {
+    const name = `WhereOperatorInputType_${inputType.name}`;
+
+    if (!operatorTypes[name]) {
+      operatorTypes[name] = new GraphQLInputObjectType({
+        name,
+        // http://docs.sequelizejs.com/en/latest/docs/querying/#operators
+        fields: {
+          eq: {
+            type: inputType,
+          },
+          ne: {
+            type: inputType,
+          },
+          lt: {
+            type: inputType,
+          },
+          gt: {
+            type: inputType,
+          },
+          gte: {
+            type: inputType,
+          },
+          between: {
+            type: new GraphQLList(inputType),
+          },
+          notBetween: {
+            type: new GraphQLList(inputType),
+          },
+          in: {
+            type: new GraphQLList(inputType),
+          },
+          notIn: {
+            type: new GraphQLList(inputType),
+          },
+          overlap: {
+            type: new GraphQLList(inputType),
+          },
+          contained: {
+            type: new GraphQLList(inputType),
+          },
+          contains: {
+            type: new GraphQLList(inputType),
+          },
+          any: {
+            type: new GraphQLList(inputType),
+          },
+        }
+      });
+    }
+
+    return operatorTypes[name];
+  };
+}());
+
+const PersonWhereInputType = new GraphQLInputObjectType({
+  name: 'PersonWhereInputType',
+  fields: {
+    firstName: {
+      type: whereOperatorInputType(GraphQLString),
+    },
+    lastName: {
+      type: whereOperatorInputType(GraphQLString),
+    },
+    age: {
+      type: whereOperatorInputType(GraphQLInt),
+    },
+  }
+});
+
 
 const queryType = new GraphQLObjectType({
   name: 'Query',
@@ -111,23 +258,14 @@ const queryType = new GraphQLObjectType({
     peopleRelay: {
       type: PersonConnection,
       description: 'Person connection test',
-      args: connectionArgs,
+      args: {
+        where: {
+          type: PersonWhereInputType,
+        },  
+        ...connectionArgs, 
+      },
       async resolve (root, args) {
-        const {first, after} = args;
-
-        const query = {
-          offset: 0
-        };
-        if (first) {
-          query.limit = first;
-        }
-
-        if (after) {
-          const decoded = new Buffer(after, 'base64').toString();
-          const [arrayconnection, offset] = decoded.split(':');
-          query.offset = parseInt(offset, 10) + 1;
-        }
-
+        const query = getRelayQueryParams(args);
 
         const {count, rows} = await Db.models.person.findAndCountAll(query);
         const meta = {
@@ -135,7 +273,11 @@ const queryType = new GraphQLObjectType({
           arrayLength: count
         };
 
-        return connectionFromArraySlice(rows, args, meta);
+        const connection = connectionFromArraySlice(rows, args, meta);
+
+        const connectionWithCount = {...connection, count};
+
+        return connectionWithCount;
       }
     },
     person: {

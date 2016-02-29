@@ -26,6 +26,10 @@ const Person = Conn.define('person', {
     validate: {
       isEmail: true
     }
+  },
+  age: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
   }
 });
 
@@ -44,12 +48,13 @@ const Post = Conn.define('post', {
 Person.hasMany(Post);
 Post.belongsTo(Person);
 
-Conn.sync({ force: true }).then(()=> {
+Conn.sync({ force: false }).then(()=> {
   _.times(10, ()=> {
     return Person.create({
       firstName: Faker.name.firstName(),
       lastName: Faker.name.lastName(),
-      email: Faker.internet.email()
+      email: Faker.internet.email(),
+      age: Faker.random.number({max: 122})
     }).then(person => {
       return person.createPost({
         title: `Sample post by ${person.firstName}`,
