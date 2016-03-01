@@ -300,10 +300,14 @@ const queryType = new GraphQLObjectType({
 
         const fields = getSelectedFieldsFromResolveInfo(info);
 
-        query.attributes = fields
+        const whitelist = ['firstName', 'lastName', 'email', 'age'];
+        const attributes = fields
           .filter(field => field.startsWith('edges.node.'))
           .map(field => field.replace('edges.node.', ''))
+          .filter(field => whitelist.includes(field))
           ;
+
+        query.attributes = ['id', ...attributes];
 
         const {count, rows} = await Db.models.person.findAndCountAll(query);
         const meta = {
