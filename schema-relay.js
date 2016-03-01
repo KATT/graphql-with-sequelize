@@ -13,17 +13,50 @@ import {
   nodeDefinitions,
   fromGlobalId,
   globalIdField,
+  GraphQLID,
   connectionArgs,
   connectionDefinitions,
+  connectionFromArray,
   connectionFromPromisedArray,
   connectionFromArraySlice
 } from 'graphql-relay';
+
+const { nodeInterface, nodeField } = nodeDefinitions(
+  globalId => {
+    const { type, id } = fromGlobalId(globalId);
+
+    console.log('type=', type);
+    console.log('id=', id);
+
+    const map = {
+      Person: () => Db.models.person.findById(id),
+      Post  : () => Db.models.post.findById(id),
+    };
+
+    const fn = map[type];
+    if (fn) {
+      return fn();
+    }
+
+    return null;
+  },
+  obj => {
+    const map = {
+      person: personType,
+      post  : postType,
+    };
+    const typeName = obj.$modelOptions.name.singular;
+    
+    return map[typeName] || null;
+  }
+);
 
 const postType = new GraphQLObjectType({
   name: 'Post',
   description: 'Blog post',
   fields () {
     return {
+      id: globalIdField('Post'),
       title: {
         type: GraphQLString,
         resolve (post) {
@@ -43,26 +76,11 @@ const postType = new GraphQLObjectType({
         }
       }
     };
-  }
+  },
+  interfaces: [nodeInterface]
 });
 
-const { nodeInterface, nodeField } = nodeDefinitions(
-  globalId => {
-    const { type, id } = fromGlobalId(globalId);
-
-    console.log('type=', type);
-    console.log('id=', id);
-
-    if (type === 'Person') {
-      return Db.models.person.findById(id);
-    }
-    return null;
-  },
-  obj => {
-    return personType;
-  }
-);
-
+// GraphQL Object Type definitions
 const personType = new GraphQLObjectType({
   name: 'Person',
   description: 'This represents a Person',
@@ -94,9 +112,18 @@ const personType = new GraphQLObjectType({
         }
       },
       posts: {
-        type: new GraphQLList(postType),
-        resolve (person) {
-          return person.getPosts();
+        type: postConnection,
+        description: 'Posts by the person',
+        args: connectionArgs,
+        async resolve (person, args) {
+          const posts = await person.getPosts();
+          const count = posts.length;
+
+          const connection = connectionFromArray(posts, args);
+
+          const connectionWithCount = {...connection, count};
+
+          return connectionWithCount;
         }
       }
     };
@@ -104,6 +131,18 @@ const personType = new GraphQLObjectType({
   interfaces: [nodeInterface]
 });
 
+// Connections
+const { connectionType: personConnection } = connectionDefinitionWithCount({
+  name: 'Person',
+  nodeType: personType,
+});
+
+const { connectionType: postConnection } = connectionDefinitionWithCount({
+  name: 'Post',
+  nodeType: postType,
+});
+
+// Helpers
 function connectionDefinitionWithCount(opts) {
   const {connectionFields, ...other} = opts;
 
@@ -118,12 +157,6 @@ function connectionDefinitionWithCount(opts) {
 
   return connectionDefinitions({...other, connectionFields: newConnectionFields});
 }
-
-// Connections
-const { connectionType: PersonConnection } = connectionDefinitionWithCount({
-  name: 'Person',
-  nodeType: personType,
-});
 
 function getConditionsForField(fieldName, args) {
   if (args.hasOwnProperty('eq')) {
@@ -287,7 +320,7 @@ const queryType = new GraphQLObjectType({
   fields: () => ({
     node: nodeField,
     peopleRelay: {
-      type: PersonConnection,
+      type: personConnection,
       description: 'Person connection test',
       args: {
         where: {
@@ -323,25 +356,43 @@ const queryType = new GraphQLObjectType({
       }
     },
     person: {
-       type: personType,
-       resolve (source, args) {
-         return Db.models.person.findOne({ where: args });
-       }
-     },
-    people: {
-       type: new GraphQLList(personType),
-       args: {
-         id: {
-           type: GraphQLInt
-         },
-         email: {
-           type: GraphQLString
-         }
+      type: personType,
+      resolve (source, args) {
+       return Db.models.person.findOne({ where: args });
+      }
+    },
+    post: {
+      type: postType,
+      args: {
+       id: {
+         type: GraphQLString
        },
-       resolve (root, args) {
-         return Db.models.person.findAll({ where: args });
-       }
-     }
+      },
+      resolve (source, args) {
+        const where = {};
+        if (args.id) {
+          const {type, id} = fromGlobalId(args.id);
+          where.id = id;
+        }
+
+
+        return Db.models.post.findOne({ where });
+      }
+    },
+    people: {
+      type: new GraphQLList(personType),
+      args: {
+        id: {
+          type: GraphQLInt
+        },
+        email: {
+          type: GraphQLString
+        }
+      },
+      resolve (root, args) {
+        return Db.models.person.findAll({ where: args });
+      }
+    }
   })
 });
 
