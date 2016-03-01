@@ -6,14 +6,18 @@ import {
   GraphQLInt,
   GraphQLSchema,
   GraphQLList,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLError
 } from 'graphql';
+
+
+import {badValueMessage} from 'graphql/validation/rules/ArgumentsOfCorrectType';
 
 import {
   nodeDefinitions,
   fromGlobalId,
   globalIdField,
-  GraphQLID,
+  cursorToOffset,
   connectionArgs,
   connectionDefinitions,
   connectionFromArray,
@@ -174,6 +178,9 @@ function getConditionsForField(fieldName, args) {
 
 function getConditionsFromWhereArg(args) {
   const where = {};
+  if (!args) {
+    return where;
+  }
 
   for (const fieldName in args) {
     const conditions = args[fieldName];
@@ -184,25 +191,31 @@ function getConditionsFromWhereArg(args) {
   return where;
 }
 
+function cursorToArrayOffset(cursor, fieldName) {
+  if (!cursor) {
+    return 0;
+  }
+
+  const offset = cursorToOffset(cursor);
+
+  if (isNaN(offset) || offset < 0) {
+    throw new GraphQLError(badValueMessage(fieldName, GraphQLString, cursor));
+  }
+
+  return offset + 1;
+}
+
 function getRelayQueryParams(args) {
   const {first, after, where} = args;
 
-  const query = {
-    offset: 0
-  };
+  const query = {};
+
   if (first) {
     query.limit = first;
   }
 
-  if (after) {
-    const decoded = new Buffer(after, 'base64').toString();
-    const [arrayconnection, offset] = decoded.split(':');
-    query.offset = parseInt(offset, 10) + 1;
-  }
-
-  if (where) {
-    query.where = getConditionsFromWhereArg(where);
-  }
+  query.offset = cursorToArrayOffset(after, 'after');
+  query.where = getConditionsFromWhereArg(where);
 
   console.log('getRelayQueryParams query', query);
 
