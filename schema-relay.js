@@ -205,16 +205,54 @@ function cursorToArrayOffset(cursor, fieldName) {
   return offset + 1;
 }
 
+function validateOnlyOneTruthy(args) {
+  let truthy = false;
+
+
+  Object.values(args).forEach(value => {
+    if (value) {
+      if (truthy) {
+        const keys = Object.keys(args);
+        throw new GraphQLError(`You can only use one of arguments: ${keys.join(', ')}.`);
+      }
+      truthy = true;
+    }
+  });
+}
+
+function validateUnsupportedArg(args, fieldName) {
+  if (args.hasOwnProperty(fieldName)) {
+    throw new Error(`Argument '${fieldName}' is currently unsupported.`);
+  }
+}
+
+function getLimit({first, last}) {
+  if (!first || !last) {
+    return 0;
+  }
+  validateOnlyOneTruthy({first, last});
+
+  // TODO support `last`
+
+  return first || last;
+}
+
+function getOffset({before, after}) {
+  validateOnlyOneTruthy({before, after})
+  
+  // TODO support `after`
+
+  return cursorToArrayOffset(after, 'after');
+}
+
 function getRelayQueryParams(args) {
-  const {first, after, where} = args;
+  validateUnsupportedArg(args, 'before');
+  validateUnsupportedArg(args, 'last');
 
   const query = {};
 
-  if (first) {
-    query.limit = first;
-  }
-
-  query.offset = cursorToArrayOffset(after, 'after');
+  query.limit = getLimit(args);
+  query.offset = getOffset(args);
   query.where = getConditionsFromWhereArg(where);
 
   console.log('getRelayQueryParams query', query);
