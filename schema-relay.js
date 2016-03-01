@@ -19,7 +19,7 @@ import {
   connectionFromArraySlice
 } from 'graphql-relay';
 
-const Post = new GraphQLObjectType({
+const postType = new GraphQLObjectType({
   name: 'Post',
   description: 'Blog post',
   fields () {
@@ -94,7 +94,7 @@ const personType = new GraphQLObjectType({
         }
       },
       posts: {
-        type: new GraphQLList(Post),
+        type: new GraphQLList(postType),
         resolve (person) {
           return person.getPosts();
         }
