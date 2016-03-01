@@ -249,6 +249,37 @@ const PersonWhereInputType = new GraphQLInputObjectType({
   }
 });
 
+function getSelectedFieldsFromSelection(selection, path = []) {
+  const fields = new Set();
+
+  const {selectionSet} = selection;
+
+  if (selectionSet && selectionSet.selections.length > 0) {
+    selectionSet.selections.forEach(sub => {
+      fields.add([...path, sub.name.value].join('.'));
+
+      const newFields = getSelectedFieldsFromSelection(sub, [...path, sub.name.value]);
+
+      newFields.forEach(field => fields.add(field));
+    });
+  } else {
+    fields.add(path.join('.'));
+  }
+
+  return fields;
+}
+
+function getSelectedFieldsFromResolveInfo({fieldASTs}) {
+  const fields = new Set();
+
+  fieldASTs.forEach(selection => {
+    const newFields = getSelectedFieldsFromSelection(selection);
+
+    newFields.forEach(field => fields.add(field));
+  });
+
+  return Array.from(fields);
+}
 
 const queryType = new GraphQLObjectType({
   name: 'Query',
@@ -264,8 +295,15 @@ const queryType = new GraphQLObjectType({
         },  
         ...connectionArgs, 
       },
-      async resolve (root, args) {
+      async resolve (source, args, info) {
         const query = getRelayQueryParams(args);
+
+        const fields = getSelectedFieldsFromResolveInfo(info);
+
+        query.attributes = fields
+          .filter(field => field.startsWith('edges.node.'))
+          .map(field => field.replace('edges.node.', ''))
+          ;
 
         const {count, rows} = await Db.models.person.findAndCountAll(query);
         const meta = {
@@ -282,7 +320,7 @@ const queryType = new GraphQLObjectType({
     },
     person: {
        type: personType,
-       resolve (root, args) {
+       resolve (source, args) {
          return Db.models.person.findOne({ where: args });
        }
      },
