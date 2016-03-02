@@ -267,70 +267,75 @@ function getRelayQueryParams(args) {
   return query;
 }
 
-const whereOperatorInput = (function () {
+function getWhereInputFields(inputType) {
+  // http://docs.sequelizejs.com/en/latest/docs/querying/#operators
+  // TODO suport more types
+  const all = {
+    eq: {
+      type: inputType,
+    },
+    ne: {
+      type: inputType,
+    },
+    in: {
+      type: new GraphQLList(inputType),
+    },
+    notIn: {
+      type: new GraphQLList(inputType),
+    },
+  };
+
+  const map = {
+    'Int': () => ({
+      ...all,
+      lt: {
+        type: inputType,
+      },
+      gt: {
+        type: inputType,
+      },
+      gte: {
+        type: inputType,
+      },
+      between: {
+        type: new GraphQLList(inputType),
+      },
+      notBetween: {
+        type: new GraphQLList(inputType),
+      }
+    }),
+    'String': () => ({
+      ...all,
+      like: {
+        type: inputType,
+      },
+      iLike: {
+        type: inputType,
+      },
+      notLike: {
+        type: inputType,
+      },
+      notILike: {
+        type: inputType,
+      }
+    })
+  };
+
+  return map[inputType.name]();
+}
+
+const operatorsInput = (function () {
   const operatorTypes = {};
 
   return (inputType) => {
-    const name = `WhereOperator${inputType.name}Input`;
+    const name = `Operators${inputType.name}Input`;
 
     if (!operatorTypes[name]) {
+      const fields = getWhereInputFields(inputType);
+
       operatorTypes[name] = new GraphQLInputObjectType({
         name,
-        // http://docs.sequelizejs.com/en/latest/docs/querying/#operators
-        // TODO different based on input type
-        fields: {
-          eq: {
-            type: inputType,
-          },
-          ne: {
-            type: inputType,
-          },
-          lt: {
-            type: inputType,
-          },
-          gt: {
-            type: inputType,
-          },
-          gte: {
-            type: inputType,
-          },
-          like: {
-            type: inputType,
-          },
-          iLike: {
-            type: inputType,
-          },
-          notLike: {
-            type: inputType,
-          },
-          notILike: {
-            type: inputType,
-          },
-          between: {
-            type: new GraphQLList(inputType),
-          },
-          notBetween: {
-            type: new GraphQLList(inputType),
-          },
-          in: {
-            type: new GraphQLList(inputType),
-          },
-          notIn: {
-            type: new GraphQLList(inputType),
-          },
-          overlap: {
-            type: new GraphQLList(inputType),
-          },
-          contained: {
-            type: new GraphQLList(inputType),
-          },
-          contains: {
-            type: new GraphQLList(inputType),
-          },
-          any: {
-            type: new GraphQLList(inputType),
-          },
-        }
+        fields,
       });
     }
 
@@ -342,13 +347,13 @@ const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
   fields: () => ({
     firstName: {
-      type: whereOperatorInput(GraphQLString),
+      type: operatorsInput(GraphQLString),
     },
     lastName: {
-      type: whereOperatorInput(GraphQLString),
+      type: operatorsInput(GraphQLString),
     },
     age: {
-      type: whereOperatorInput(GraphQLInt),
+      type: operatorsInput(GraphQLInt),
     },
     _and: {
       type: PersonWhereInput,
