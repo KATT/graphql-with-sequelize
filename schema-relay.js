@@ -252,7 +252,25 @@ function getOffset({before, after}) {
   return cursorToArrayOffset(after, 'after');
 }
 
-function getRelayQueryParams(args) {
+function getInclude(args, includeList) {
+  const include = [];
+  includeList.forEach((opts) => {
+    const {key, ...other} = opts;
+    if (args.hasOwnProperty(key)) {
+      const where = getConditionsFromWhereArg(args[key]);
+      const attributes = [];
+      include.push({
+        where,
+        attributes,
+        ...other,
+      });
+    }
+  });
+
+  return include;
+}
+
+function getRelayQueryParams(args, include = []) {
   validateUnsupportedArg(args, 'before');
   validateUnsupportedArg(args, 'last');
 
@@ -261,6 +279,7 @@ function getRelayQueryParams(args) {
   query.limit = getLimit(args);
   query.offset = getOffset(args);
   query.where = getConditionsFromWhereArg(args.where);
+  query.include = getInclude(args, include);
 
   console.log('getRelayQueryParams query', query);
 
@@ -441,11 +460,20 @@ const queryType = new GraphQLObjectType({
       args: {
         where: {
           type: PersonWhereInput,
-        },  
+        },
+        wherePost: {
+          type: PostWhereInput
+        },
         ...connectionArgs, 
       },
       async resolve (source, args, info) {
-        const query = getRelayQueryParams(args);
+        const include = [
+          {
+            model: Db.models.post,
+            key  : 'wherePost',
+          }
+        ];
+        const query = getRelayQueryParams(args, include);
 
         const fields = getSelectedFieldsFromResolveInfo(info);
 
@@ -469,7 +497,7 @@ const queryType = new GraphQLObjectType({
       args: {
         where: {
           type: PostWhereInput,
-        },  
+        },
         ...connectionArgs, 
       },
       async resolve (source, args, info) {
