@@ -253,7 +253,7 @@ function getRelayQueryParams(args) {
 
   query.limit = getLimit(args);
   query.offset = getOffset(args);
-  query.where = getConditionsFromWhereArg(where);
+  query.where = getConditionsFromWhereArg(args.where);
 
   console.log('getRelayQueryParams query', query);
 
