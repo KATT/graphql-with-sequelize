@@ -291,6 +291,9 @@ function getWhereInputFields(inputType) {
       lt: {
         type: inputType,
       },
+      lte: {
+        type: inputType,
+      },
       gt: {
         type: inputType,
       },
