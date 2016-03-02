@@ -402,7 +402,7 @@ const queryType = new GraphQLObjectType({
   description: 'Root query',
   fields: () => ({
     node: nodeField,
-    peopleRelay: {
+    people: {
       type: personConnection,
       description: 'Person connection test',
       args: {
@@ -438,13 +438,13 @@ const queryType = new GraphQLObjectType({
         return connectionWithCount;
       }
     },
-    person: {
+    personNoRelay: {
       type: Person,
       resolve (source, args) {
        return Db.models.person.findOne({ where: args });
       }
     },
-    post: {
+    postNoRelay: {
       type: Post,
       args: {
        id: {
@@ -462,7 +462,7 @@ const queryType = new GraphQLObjectType({
         return Db.models.post.findOne({ where });
       }
     },
-    people: {
+    peopleNoRelay: {
       type: new GraphQLList(Person),
       args: {
         id: {
