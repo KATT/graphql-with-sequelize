@@ -46,8 +46,8 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   },
   obj => {
     const map = {
-      person: personType,
-      post  : postType,
+      person: Person,
+      post  : Post,
     };
     const typeName = obj.$modelOptions.name.singular;
     
@@ -55,7 +55,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   }
 );
 
-const postType = new GraphQLObjectType({
+const Post = new GraphQLObjectType({
   name: 'Post',
   description: 'Blog post',
   fields () {
@@ -74,7 +74,7 @@ const postType = new GraphQLObjectType({
         }
       },
       person: {
-        type: personType,
+        type: Person,
         resolve (post) {
           return post.getPerson();
         }
@@ -85,7 +85,7 @@ const postType = new GraphQLObjectType({
 });
 
 // GraphQL Object Type definitions
-const personType = new GraphQLObjectType({
+const Person = new GraphQLObjectType({
   name: 'Person',
   description: 'This represents a Person',
   fields: () => {
@@ -138,12 +138,12 @@ const personType = new GraphQLObjectType({
 // Connections
 const { connectionType: personConnection } = connectionDefinitionWithCount({
   name: 'Person',
-  nodeType: personType,
+  nodeType: Person,
 });
 
 const { connectionType: postConnection } = connectionDefinitionWithCount({
   name: 'Post',
-  nodeType: postType,
+  nodeType: Post,
 });
 
 // Helpers
@@ -166,6 +166,7 @@ function getConditionsForField(fieldName, args) {
   if (args.hasOwnProperty('eq')) {
     return args.eq;
   }
+
   const conditions = {};
   for (const operatorName in args) {
     const value = args[operatorName];
@@ -182,10 +183,16 @@ function getConditionsFromWhereArg(args) {
     return where;
   }
 
-  for (const fieldName in args) {
-    const conditions = args[fieldName];
+  for (const key in args) {
+    const conditions = args[key];
 
-    where[fieldName] = getConditionsForField(fieldName, conditions);
+    if (key === '_and') {
+      where.$and = getConditionsFromWhereArg(conditions);
+    } else if (key === '_or') {
+      where.$or = conditions.map(condition => getConditionsFromWhereArg(condition));
+    } else {
+      where[key] = getConditionsForField(key, conditions);
+    }
   }
 
   return where;
@@ -260,16 +267,17 @@ function getRelayQueryParams(args) {
   return query;
 }
 
-const whereOperatorInputType = (function () {
+const whereOperatorInput = (function () {
   const operatorTypes = {};
 
   return (inputType) => {
-    const name = `WhereOperatorInputType_${inputType.name}`;
+    const name = `WhereOperator${inputType.name}Input`;
 
     if (!operatorTypes[name]) {
       operatorTypes[name] = new GraphQLInputObjectType({
         name,
         // http://docs.sequelizejs.com/en/latest/docs/querying/#operators
+        // TODO different based on input type
         fields: {
           eq: {
             type: inputType,
@@ -284,6 +292,18 @@ const whereOperatorInputType = (function () {
             type: inputType,
           },
           gte: {
+            type: inputType,
+          },
+          like: {
+            type: inputType,
+          },
+          iLike: {
+            type: inputType,
+          },
+          notLike: {
+            type: inputType,
+          },
+          notILike: {
             type: inputType,
           },
           between: {
@@ -318,19 +338,25 @@ const whereOperatorInputType = (function () {
   };
 }());
 
-const PersonWhereInputType = new GraphQLInputObjectType({
-  name: 'PersonWhereInputType',
-  fields: {
+const PersonWhereInput = new GraphQLInputObjectType({
+  name: 'PersonWhereInput',
+  fields: () => ({
     firstName: {
-      type: whereOperatorInputType(GraphQLString),
+      type: whereOperatorInput(GraphQLString),
     },
     lastName: {
-      type: whereOperatorInputType(GraphQLString),
+      type: whereOperatorInput(GraphQLString),
     },
     age: {
-      type: whereOperatorInputType(GraphQLInt),
+      type: whereOperatorInput(GraphQLInt),
     },
-  }
+    _and: {
+      type: PersonWhereInput,
+    },
+    _or: {
+      type: new GraphQLList(PersonWhereInput),
+    },
+  })
 });
 
 function getSelectedFieldsFromSelection(selection, path = []) {
@@ -365,6 +391,7 @@ function getSelectedFieldsFromResolveInfo({fieldASTs}) {
   return Array.from(fields);
 }
 
+
 const queryType = new GraphQLObjectType({
   name: 'Query',
   description: 'Root query',
@@ -375,7 +402,7 @@ const queryType = new GraphQLObjectType({
       description: 'Person connection test',
       args: {
         where: {
-          type: PersonWhereInputType,
+          type: PersonWhereInput,
         },  
         ...connectionArgs, 
       },
@@ -407,13 +434,13 @@ const queryType = new GraphQLObjectType({
       }
     },
     person: {
-      type: personType,
+      type: Person,
       resolve (source, args) {
        return Db.models.person.findOne({ where: args });
       }
     },
     post: {
-      type: postType,
+      type: Post,
       args: {
        id: {
          type: GraphQLString
@@ -431,7 +458,7 @@ const queryType = new GraphQLObjectType({
       }
     },
     people: {
-      type: new GraphQLList(personType),
+      type: new GraphQLList(Person),
       args: {
         id: {
           type: GraphQLInt
