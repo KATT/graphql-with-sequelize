@@ -324,7 +324,7 @@ function getWhereInputFields(inputType) {
   return map[inputType.name]();
 }
 
-const operatorsInput = (function () {
+const operatorsInputType = (function () {
   const operatorTypes = {};
 
   return (inputType) => {
@@ -343,18 +343,26 @@ const operatorsInput = (function () {
   };
 }());
 
+const operatorsFieldInput = function(inputType) {
+  return {
+    type: operatorsInputType(inputType),
+  };
+}
+
+const PostWhereInput = new GraphQLInputObjectType({
+  name: 'PostWhereInput',
+  fields: () => ({
+    title: operatorsFieldInput(GraphQLString),
+    content: operatorsFieldInput(GraphQLString),
+  })
+});
+
 const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
   fields: () => ({
-    firstName: {
-      type: operatorsInput(GraphQLString),
-    },
-    lastName: {
-      type: operatorsInput(GraphQLString),
-    },
-    age: {
-      type: operatorsInput(GraphQLInt),
-    },
+    firstName: operatorsFieldInput(GraphQLString),
+    lastName: operatorsFieldInput(GraphQLString),
+    age: operatorsFieldInput(GraphQLInt),
     _and: {
       type: PersonWhereInput,
     },
@@ -396,6 +404,28 @@ function getSelectedFieldsFromResolveInfo({fieldASTs}) {
   return Array.from(fields);
 }
 
+function connectionFromDBMeta({args, offset, count, rows}) {
+    const meta = {
+      sliceStart: offset,
+      arrayLength: count
+    };
+
+    const connection = connectionFromArraySlice(rows, args, meta);
+
+    const connectionWithCount = {...connection, count};
+
+    return connectionWithCount;
+}
+
+function getAttributesList(fields, whitelist, always = ['id']) {
+  const attributes = fields
+    .filter(field => field.startsWith('edges.node.'))
+    .map(field => field.replace('edges.node.', ''))
+    .filter(field => whitelist.includes(field))
+    ;
+
+  return [...always, ...attributes];
+}
 
 const queryType = new GraphQLObjectType({
   name: 'Query',
@@ -417,25 +447,45 @@ const queryType = new GraphQLObjectType({
         const fields = getSelectedFieldsFromResolveInfo(info);
 
         const whitelist = ['firstName', 'lastName', 'email', 'age'];
-        const attributes = fields
-          .filter(field => field.startsWith('edges.node.'))
-          .map(field => field.replace('edges.node.', ''))
-          .filter(field => whitelist.includes(field))
-          ;
 
-        query.attributes = ['id', ...attributes];
+        query.attributes = getAttributesList(fields, whitelist);
 
         const {count, rows} = await Db.models.person.findAndCountAll(query);
-        const meta = {
-          sliceStart: query.offset,
-          arrayLength: count
-        };
 
-        const connection = connectionFromArraySlice(rows, args, meta);
+        return connectionFromDBMeta({
+          args,
+          count,
+          rows,
+          offset: query.offset,
+        });
+      }
+    },
+    posts: {
+      type: postConnection,
+      description: 'Post connection test',
+      args: {
+        where: {
+          type: PostWhereInput,
+        },  
+        ...connectionArgs, 
+      },
+      async resolve (source, args, info) {
+        const query = getRelayQueryParams(args);
 
-        const connectionWithCount = {...connection, count};
+        const fields = getSelectedFieldsFromResolveInfo(info);
 
-        return connectionWithCount;
+        const whitelist = ['title', 'content'];
+        const always = ['id', 'personId'];
+        query.attributes = getAttributesList(fields, whitelist, always);
+
+        const {count, rows} = await Db.models.post.findAndCountAll(query);
+        
+        return connectionFromDBMeta({
+          args,
+          count,
+          rows,
+          offset: query.offset,
+        });
       }
     },
     personNoRelay: {
