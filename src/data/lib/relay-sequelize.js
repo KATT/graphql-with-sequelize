@@ -121,14 +121,11 @@ export function validateUnsupportedArg(args, fieldName) {
 }
 
 export function getLimit({first, last}) {
-  if (!first || !last) {
-    return 0;
-  }
   validateOnlyOneTruthy({first, last});
 
   // TODO support `last`
 
-  return first || last;
+  return first || last || 0;
 }
 
 export function getOffset({before, after}) {
@@ -363,11 +360,17 @@ export function createResolveFunction(opts) {
   return async (source, args, info) => {
     const query = getRelayQueryParams(args, include);
 
+    console.log('args', args);
+
     const fields = getSelectedFieldsFromResolveInfo(info);
 
-    query.attributes = getAttributesList(fields, whitelist, always);
 
+    // FIXME doesn't work with fragments
+    // query.attributes = getAttributesList(fields, whitelist, always);
+
+    // FIXME limit doesn't work with fragments
     const {count, rows} = await model.findAndCountAll(query);
+
     
     return connectionFromDBMeta({
       args,

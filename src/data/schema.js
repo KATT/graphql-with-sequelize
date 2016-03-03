@@ -195,14 +195,13 @@ const PersonWhereInput = new GraphQLInputObjectType({
 });
 
 
-const queryType = new GraphQLObjectType({
-  name: 'Query',
-  description: 'Root query',
+const viewer = new GraphQLObjectType({
+  name: 'viewer',
   fields: () => ({
     node: nodeField,
     people: {
       type: personConnection,
-      description: 'Person connection test',
+      description: 'Person connection',
       args: {
         where: {
           type: PersonWhereInput,
@@ -220,7 +219,7 @@ const queryType = new GraphQLObjectType({
     },
     posts: {
       type: postConnection,
-      description: 'Post connection test',
+      description: 'Post connection',
       args: {
         where: {
           type: PostWhereInput,
@@ -233,6 +232,19 @@ const queryType = new GraphQLObjectType({
         always: ['id', 'personId'],
       })
     }
+  })
+});
+
+
+const queryType = new GraphQLObjectType({
+  name: 'Query',
+  description: 'Root query',
+  fields: () => ({
+    node: nodeField,
+    viewer: {
+      type: viewer,
+      resolve: () => ({})
+    },
   })
 });
 

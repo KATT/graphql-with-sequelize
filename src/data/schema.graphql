@@ -1,0 +1,119 @@
+type viewer {
+  node(id: ID!): Node
+  people(where: PersonWhereInput, wherePost: PostWhereInput, after: String, first: Int, before: String, last: Int): PersonConnection
+  posts(where: PostWhereInput, after: String, first: Int, before: String, last: Int): PostConnection
+}
+
+interface Node {
+  id: ID!
+}
+
+input OperatorsIntInput {
+  eq: Int
+  ne: Int
+  in: [Int]
+  notIn: [Int]
+  lt: Int
+  lte: Int
+  gt: Int
+  gte: Int
+  between: [Int]
+  notBetween: [Int]
+}
+
+input OperatorsStringEqInput {
+  eq: String
+  ne: String
+}
+
+input OperatorsStringInput {
+  eq: String
+  ne: String
+  in: [String]
+  notIn: [String]
+  like: String
+  notLike: String
+  iLike: String
+  notILike: String
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+type Person implements Node {
+  id: ID!
+  firstName: String
+  lastName: String
+  email: String
+  age: Int
+  posts(after: String, first: Int, before: String, last: Int): PostConnection
+}
+
+type PersonConnection {
+  pageInfo: PageInfo!
+  edges: [PersonEdge]
+  count: Int
+}
+
+type PersonEdge {
+  node: Person
+  cursor: String!
+}
+
+input PersonWhereInput {
+  firstName: OperatorsStringEqInput
+  lastName: OperatorsStringInput
+  age: OperatorsIntInput
+  _and: PersonWhereInput
+  _or: [PersonWhereInput]
+}
+
+type Post implements Node {
+  id: ID!
+  title: String
+  content: String
+  person: Person
+  tags(after: String, first: Int, before: String, last: Int): TagConnection
+  tagNames(after: String, first: Int, before: String, last: Int): [String]
+}
+
+type PostConnection {
+  pageInfo: PageInfo!
+  edges: [PostEdge]
+  count: Int
+}
+
+type PostEdge {
+  node: Post
+  cursor: String!
+}
+
+input PostWhereInput {
+  title: OperatorsStringInput
+  content: OperatorsStringInput
+}
+
+type Query {
+  node(id: ID!): Node
+  viewer: viewer
+}
+
+type Tag implements Node {
+  id: ID!
+  name: String
+}
+
+type TagConnection {
+  pageInfo: PageInfo!
+  edges: [TagEdge]
+  count: Int
+}
+
+type TagEdge {
+  node: Tag
+  cursor: String!
+}
