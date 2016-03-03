@@ -48,17 +48,23 @@ const Post = Conn.define('post', {
 Person.hasMany(Post);
 Post.belongsTo(Person);
 
-Conn.sync({ force: false }).then(()=> {
-  _.times(10, ()=> {
+Conn.sync({ force: false }).then(async ()=> {
+  const count = await Person.count();
+  if (count > 0) {
+    return;
+  }
+  _.times(1000, ()=> {
     return Person.create({
       firstName: Faker.name.firstName(),
       lastName: Faker.name.lastName(),
       email: Faker.internet.email(),
       age: Faker.random.number({max: 122})
     }).then(person => {
-      return person.createPost({
-        title: `Sample post by ${person.firstName}`,
-        content: 'here is some content'
+      _.times(_.random(0, 5), () => {
+        return person.createPost({
+          title: `Sample post by ${person.firstName}`,
+          content: 'here is some content'
+        });
       });
     });
   });
