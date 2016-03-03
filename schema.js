@@ -204,10 +204,10 @@ const queryType = new GraphQLObjectType({
         const query = getRelayQueryParams(args, include);
 
         const fields = getSelectedFieldsFromResolveInfo(info);
-
         const whitelist = ['firstName', 'lastName', 'email', 'age'];
+        const always = ['id'];
 
-        query.attributes = getAttributesList(fields, whitelist);
+        query.attributes = getAttributesList(fields, whitelist, always);
 
         const {count, rows} = await Db.models.person.findAndCountAll(query);
 
