@@ -91,7 +91,16 @@ const Post = new GraphQLObjectType({
         resolve (post, args) {
           return connectionWithCountFromPromisedArray(post.getTags(), args);
         }
-      }
+      },
+      tagNames: {
+        type: new GraphQLList(GraphQLString),
+        description: 'All tag names on the post as simple array',
+        args: connectionArgs,
+        async resolve (post, args) {
+          const tags = await post.getTags();
+          return tags.map(({name}) => name);
+        }
+      },
     };
   },
   interfaces: [nodeInterface]
