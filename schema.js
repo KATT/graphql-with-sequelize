@@ -16,20 +16,18 @@ import {
   nodeDefinitions,
   fromGlobalId,
   globalIdField,
-  connectionArgs,
-  connectionFromArray,
-  connectionFromPromisedArray,
-  connectionFromArraySlice
+  connectionArgs
 } from 'graphql-relay';
 
 
 import {
-  connectionDefinitionWithCount,
+  connectionWithCountDefinition,
   getRelayQueryParams,
   operatorsFieldInput,
   getSelectedFieldsFromResolveInfo,
   connectionFromDBMeta,
-  getAttributesList
+  getAttributesList,
+  connectionWithCountFromPromisedArray
 } from './lib/relay-sequelize';
 
 const { nodeInterface, nodeField } = nodeDefinitions(
@@ -85,7 +83,7 @@ const Post = new GraphQLObjectType({
         resolve (post) {
           return post.getPerson();
         }
-      }
+      },
     };
   },
   interfaces: [nodeInterface]
@@ -126,15 +124,8 @@ const Person = new GraphQLObjectType({
         type: postConnection,
         description: 'Posts by the person',
         args: connectionArgs,
-        async resolve (person, args) {
-          const posts = await person.getPosts();
-          const count = posts.length;
-
-          const connection = connectionFromArray(posts, args);
-
-          const connectionWithCount = {...connection, count};
-
-          return connectionWithCount;
+        resolve (person, args) {
+          return connectionWithCountFromPromisedArray(person.getPosts(), args);
         }
       }
     };
@@ -143,12 +134,12 @@ const Person = new GraphQLObjectType({
 });
 
 // Connections
-const { connectionType: personConnection } = connectionDefinitionWithCount({
+const { connectionType: personConnection } = connectionWithCountDefinition({
   name: 'Person',
   nodeType: Person,
 });
 
-const { connectionType: postConnection } = connectionDefinitionWithCount({
+const { connectionType: postConnection } = connectionWithCountDefinition({
   name: 'Post',
   nodeType: Post,
 });
