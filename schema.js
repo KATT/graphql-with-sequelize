@@ -40,6 +40,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
     const map = {
       Person: () => Db.models.person.findById(id),
       Post  : () => Db.models.post.findById(id),
+      Tag   : () => Db.models.tag.findById(id),
     };
 
     const fn = map[type];
@@ -53,6 +54,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
     const map = {
       person: Person,
       post  : Post,
+      tag   : Tag,
     };
     const typeName = obj.$modelOptions.name.singular;
     
@@ -60,6 +62,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
   }
 );
 
+// GraphQL Object Type definitions
 const Post = new GraphQLObjectType({
   name: 'Post',
   description: 'Blog post',
@@ -84,12 +87,33 @@ const Post = new GraphQLObjectType({
           return post.getPerson();
         }
       },
+      tags: {
+        type: tagConnection,
+        description: 'Tags on the post',
+        args: connectionArgs,
+        resolve (post, args) {
+          return connectionWithCountFromPromisedArray(post.getTags(), args);
+        }
+      }
     };
   },
   interfaces: [nodeInterface]
 });
 
-// GraphQL Object Type definitions
+const Tag = new GraphQLObjectType({
+  name: 'Tag',
+  fields () {
+    return {
+      id: globalIdField('Tag'),
+      name: {
+        type: GraphQLString,
+        resolve: ({name}) => name,
+      },
+    };
+  },
+  interfaces: [nodeInterface]
+});
+
 const Person = new GraphQLObjectType({
   name: 'Person',
   description: 'This represents a Person',
@@ -142,6 +166,11 @@ const { connectionType: personConnection } = connectionWithCountDefinition({
 const { connectionType: postConnection } = connectionWithCountDefinition({
   name: 'Post',
   nodeType: Post,
+});
+
+const { connectionType: tagConnection } = connectionWithCountDefinition({
+  name: 'Tag',
+  nodeType: Tag,
 });
 
 const PostWhereInput = new GraphQLInputObjectType({
