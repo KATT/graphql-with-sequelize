@@ -236,6 +236,6 @@ const queryType = new GraphQLObjectType({
   })
 });
 
-export default new GraphQLSchema({
+export const schema = new GraphQLSchema({
   query: queryType
 });
