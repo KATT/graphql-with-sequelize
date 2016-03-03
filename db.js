@@ -9,7 +9,7 @@ const Conn = new Sequelize(
   {
     dialect: 'postgres',
     host: 'localhost',
-    logging: true
+    // logging: false,
   }
 );
 
