@@ -1,6 +1,6 @@
 import Express from 'express';
 import GraphHTTP from 'express-graphql';
-import Schema from './schema-relay';
+import Schema from './schema';
 
 // Config
 const APP_PORT = 3000;
