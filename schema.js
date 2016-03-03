@@ -185,7 +185,7 @@ const PostWhereInput = new GraphQLInputObjectType({
 const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
   fields: () => ({
-    firstName: operatorsFieldInput(GraphQLString),
+    firstName: operatorsFieldInput(GraphQLString, ['eq']),
     lastName: operatorsFieldInput(GraphQLString),
     age: operatorsFieldInput(GraphQLInt),
     _and: {
@@ -213,7 +213,7 @@ const queryType = new GraphQLObjectType({
         wherePost: {
           type: PostWhereInput
         },
-        ...connectionArgs, 
+        ...connectionArgs,
       },
       resolve: createResolveFunction({
         model: Db.models.person,
