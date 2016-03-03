@@ -27,7 +27,8 @@ import {
   getSelectedFieldsFromResolveInfo,
   connectionFromDBMeta,
   getAttributesList,
-  connectionWithCountFromPromisedArray
+  connectionWithCountFromPromisedArray,
+  createResolveFunction
 } from './lib/relay-sequelize';
 
 const { nodeInterface, nodeField } = nodeDefinitions(
@@ -214,30 +215,11 @@ const queryType = new GraphQLObjectType({
         },
         ...connectionArgs, 
       },
-      async resolve (source, args, info) {
-        const include = [
-          {
-            model: Db.models.post,
-            key  : 'wherePost',
-          }
-        ];
-        const query = getRelayQueryParams(args, include);
-
-        const fields = getSelectedFieldsFromResolveInfo(info);
-        const whitelist = ['firstName', 'lastName', 'email', 'age'];
-        const always = ['id'];
-
-        query.attributes = getAttributesList(fields, whitelist, always);
-
-        const {count, rows} = await Db.models.person.findAndCountAll(query);
-
-        return connectionFromDBMeta({
-          args,
-          count,
-          rows,
-          offset: query.offset,
-        });
-      }
+      resolve: createResolveFunction({
+        model: Db.models.person,
+        whitelist: ['firstName', 'lastName', 'email', 'age'],
+        always: ['id'],
+      }),
     },
     posts: {
       type: postConnection,
@@ -248,24 +230,11 @@ const queryType = new GraphQLObjectType({
         },
         ...connectionArgs, 
       },
-      async resolve (source, args, info) {
-        const query = getRelayQueryParams(args);
-
-        const fields = getSelectedFieldsFromResolveInfo(info);
-
-        const whitelist = ['title', 'content'];
-        const always = ['id', 'personId'];
-        query.attributes = getAttributesList(fields, whitelist, always);
-
-        const {count, rows} = await Db.models.post.findAndCountAll(query);
-        
-        return connectionFromDBMeta({
-          args,
-          count,
-          rows,
-          offset: query.offset,
-        });
-      }
+      resolve: createResolveFunction({
+        model: Db.models.post,
+        whitelist: ['title', 'content'],
+        always: ['id', 'personId'],
+      })
     }
   })
 });
