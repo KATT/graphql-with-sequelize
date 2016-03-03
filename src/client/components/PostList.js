@@ -40,9 +40,11 @@ class PostList extends React.Component {
     );
   }
   render() {
+    const count = this.props.viewer.posts.count;
     return (
       <section className="main">
         <h1>Posts</h1>
+        <p><strong>Total number of posts in DB:</strong> {count}</p>
         <ul className="post-list">
           {this.renderPosts()}
         </ul>
@@ -61,6 +63,7 @@ export default Relay.createContainer(PostList, {
     viewer: () => Relay.QL`
       fragment on viewer {
         posts(first: $limit) {
+          count
           edges {
             node {
               id,
