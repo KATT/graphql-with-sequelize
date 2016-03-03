@@ -72,15 +72,11 @@ const Post = new GraphQLObjectType({
       id: globalIdField('Post'),
       title: {
         type: GraphQLString,
-        resolve (post) {
-          return post.title;
-        }
+        resolve: ({title}) => title,
       },
       content: {
         type: GraphQLString,
-        resolve (post) {
-          return post.content;
-        }
+        resolve: ({content}) => content,
       },
       person: {
         type: Person,
@@ -123,27 +119,19 @@ const Person = new GraphQLObjectType({
       id: globalIdField('Person'),
       firstName: {
         type: GraphQLString,
-        resolve (person) {
-          return person.firstName;
-        }
+        resolve: ({firstName}) => firstName
       },
       lastName: {
         type: GraphQLString,
-        resolve (person) {
-          return person.lastName;
-        }
+        resolve: ({lastName}) => lastName
       },
       email: {
         type: GraphQLString,
-        resolve (person) {
-          return person.email;
-        }
+        resolve: ({email}) => email
       },
       age: {
         type: GraphQLInt,
-        resolve (person) {
-          return person.age;
-        }
+        resolve: ({age}) => age
       },
       posts: {
         type: postConnection,
