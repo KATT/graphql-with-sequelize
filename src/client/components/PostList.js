@@ -3,6 +3,8 @@ import Relay from 'react-relay';
 
 import Post from './Post';
 
+const initalLimit = 10;
+
 class PostList extends React.Component {
   state = {
     isLoading: false,
@@ -13,7 +15,7 @@ class PostList extends React.Component {
     if (!this.state.isLoading && isAtBottom) {
       this.setState({isLoading: true}, () => {
         this.props.relay.setVariables({
-          limit: this.props.relay.variables.limit + 5
+          limit: this.props.relay.variables.limit + initalLimit
         }, (readyState) => { 
           // this gets called twice https://goo.gl/ZsQ3Dy
           if (readyState.done) {
@@ -22,6 +24,28 @@ class PostList extends React.Component {
         });
       });
     }
+  }
+
+  onSearchTitleKeyUp = (e) => {
+    const {value} = e.target;
+    const where = {};
+    const limit = initalLimit;
+    if (e.target.value) {
+      where.title = {
+        iLike: value
+      };
+    }
+
+    this.setState({isLoading: true});
+    this.props.relay.setVariables({
+      limit,
+      where,
+    }, (readyState) => { 
+      // this gets called twice https://goo.gl/ZsQ3Dy
+      if (readyState.done) {
+        this.setState({isLoading: false});
+      }
+    });
   }
 
   componentDidMount() {
@@ -44,11 +68,15 @@ class PostList extends React.Component {
     return (
       <section className="main">
         <h1>Posts</h1>
-        <p><strong>Total number of posts in DB:</strong> {count}</p>
+        <p>
+          <label>Search through the titles: <input onKeyUp={this.onSearchTitleKeyUp} /></label>
+        </p>
+        {this.state.isLoading && <p>Loading..</p>}
+        <p>Showing <strong>{this.props.relay.variables.limit}</strong> of the total <strong>{count}</strong> matches.</p>
         <ul className="post-list">
           {this.renderPosts()}
         </ul>
-        {this.state.isLoading && <p>Loading more posts..</p>}
+        {this.state.isLoading && <p>Loading posts..</p>}
       </section>
     );
   }
@@ -56,13 +84,14 @@ class PostList extends React.Component {
 
 export default Relay.createContainer(PostList, {
   initialVariables: {
-    limit: 2,
+    limit: initalLimit,
+    where: {},
   },
 
   fragments: {
     viewer: () => Relay.QL`
       fragment on viewer {
-        posts(first: $limit) {
+        posts(first: $limit where: $where) {
           count
           edges {
             node {
