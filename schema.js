@@ -246,44 +246,6 @@ const queryType = new GraphQLObjectType({
           offset: query.offset,
         });
       }
-    },
-    personNoRelay: {
-      type: Person,
-      resolve (source, args) {
-       return Db.models.person.findOne({ where: args });
-      }
-    },
-    postNoRelay: {
-      type: Post,
-      args: {
-       id: {
-         type: GraphQLString
-       },
-      },
-      resolve (source, args) {
-        const where = {};
-        if (args.id) {
-          const {type, id} = fromGlobalId(args.id);
-          where.id = id;
-        }
-
-
-        return Db.models.post.findOne({ where });
-      }
-    },
-    peopleNoRelay: {
-      type: new GraphQLList(Person),
-      args: {
-        id: {
-          type: GraphQLInt
-        },
-        email: {
-          type: GraphQLString
-        }
-      },
-      resolve (root, args) {
-        return Db.models.person.findAll({ where: args });
-      }
     }
   })
 });
