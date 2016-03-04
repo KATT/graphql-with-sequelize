@@ -3,7 +3,7 @@ import Relay from 'react-relay';
 
 import Post from './Post';
 
-const initalLimit = 10;
+const initalLimit = 50;
 
 class PostList extends React.Component {
   state = {
@@ -32,7 +32,7 @@ class PostList extends React.Component {
     const limit = initalLimit;
     if (e.target.value) {
       where.title = {
-        iLike: value
+        iLike: `%${value}%`
       };
     }
 
