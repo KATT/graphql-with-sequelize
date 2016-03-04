@@ -17,7 +17,6 @@ ReactDOM.render(
       <IndexRoute
         component={PostList}
         queries={ViewerQueries}
-        prepareParams={() => ({limit: 2})}
       />
     </Route>
   </RelayRouter>,
