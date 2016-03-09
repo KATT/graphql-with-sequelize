@@ -938,7 +938,7 @@
               "description": null,
               "type": {
                 "kind": "INPUT_OBJECT",
-                "name": "OperatorsStringEqInput",
+                "name": "OperatorsStringEqILikeInput",
                 "ofType": null
               },
               "defaultValue": null
@@ -994,7 +994,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "OperatorsStringEqInput",
+          "name": "OperatorsStringEqILikeInput",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -1010,6 +1010,26 @@
             },
             {
               "name": "ne",
+              "description": null,
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "iLike",
+              "description": null,
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": null
+            },
+            {
+              "name": "notILike",
               "description": null,
               "type": {
                 "kind": "SCALAR",

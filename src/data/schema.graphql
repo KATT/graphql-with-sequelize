@@ -15,9 +15,11 @@ input OperatorsIntInput {
   notBetween: [Int]
 }
 
-input OperatorsStringEqInput {
+input OperatorsStringEqILikeInput {
   eq: String
   ne: String
+  iLike: String
+  notILike: String
 }
 
 input OperatorsStringInput {
@@ -59,7 +61,7 @@ type PersonEdge {
 }
 
 input PersonWhereInput {
-  firstName: OperatorsStringEqInput
+  firstName: OperatorsStringEqILikeInput
   lastName: OperatorsStringInput
   age: OperatorsIntInput
   _and: PersonWhereInput

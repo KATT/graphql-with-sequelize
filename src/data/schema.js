@@ -182,7 +182,7 @@ const PostWhereInput = new GraphQLInputObjectType({
 const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
   fields: () => ({
-    firstName: operatorsFieldInput(GraphQLString, ['eq']),
+    firstName: operatorsFieldInput(GraphQLString, ['eq', 'iLike']),
     lastName: operatorsFieldInput(GraphQLString),
     age: operatorsFieldInput(GraphQLInt),
     _and: {

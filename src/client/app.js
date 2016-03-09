@@ -8,6 +8,8 @@ import ReactDOM from 'react-dom';
 import {RelayRouter} from 'react-router-relay';
 import PostsContainer from './containers/PostsContainer';
 import PostList from './components/PostList';
+import PeopleContainer from './containers/PeopleContainer';
+import PersonList from './components/PersonList';
 import ViewerQueries from './queries/ViewerQueries';
 
 import { Provider } from 'react-redux';
@@ -28,6 +30,13 @@ ReactDOM.render(
         path="/" component={PostsContainer}>
         <IndexRoute
           component={PostList}
+          queries={ViewerQueries}
+        />
+      </Route>
+      <Route
+        path="/people" component={PeopleContainer}>
+        <IndexRoute
+          component={PersonList}
           queries={ViewerQueries}
         />
       </Route>

@@ -4,16 +4,16 @@ import { connect } from 'react-redux';
 
 import { Link } from 'react-router';
 
-class PostsContainer extends React.Component {
+class PeopleContainer extends React.Component {
   render() {
-    console.log('PostsContainer: ', this.props);
+    console.log('PeopleContainer: ', this.props);
     return (
       <div>
-        <Link to='/people'>People</Link>
-        <section className="postapp">
+        <Link to='/'>Posts</Link>
+        <section className="peopleapp">
           <header className="header">
             <h1>
-              posts
+              people
             </h1>
           </header>
 
@@ -30,4 +30,4 @@ class PostsContainer extends React.Component {
 function select(state) {
     return state;
 }
-export default connect(select)(PostsContainer)
+export default connect(select)(PeopleContainer)
