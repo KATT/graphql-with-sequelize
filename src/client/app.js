@@ -6,7 +6,7 @@ import {IndexRoute, Route} from 'react-router';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {RelayRouter} from 'react-router-relay';
-import PostApp from './components/PostApp';
+import PostsContainer from './containers/PostsContainer';
 import PostList from './components/PostList';
 import ViewerQueries from './queries/ViewerQueries';
 
@@ -25,7 +25,7 @@ ReactDOM.render(
   <Provider store={store}>
     <RelayRouter>
       <Route
-        path="/" component={PostApp}>
+        path="/" component={PostsContainer}>
         <IndexRoute
           component={PostList}
           queries={ViewerQueries}
