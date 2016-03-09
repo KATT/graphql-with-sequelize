@@ -1,9 +1,3 @@
-type viewer {
-  node(id: ID!): Node
-  people(where: PersonWhereInput, wherePost: PostWhereInput, after: String, first: Int, before: String, last: Int): PersonConnection
-  posts(where: PostWhereInput, after: String, first: Int, before: String, last: Int): PostConnection
-}
-
 interface Node {
   id: ID!
 }
@@ -116,4 +110,10 @@ type TagConnection {
 type TagEdge {
   node: Tag
   cursor: String!
+}
+
+type viewer {
+  node(id: ID!): Node
+  people(where: PersonWhereInput, wherePost: PostWhereInput, after: String, first: Int, before: String, last: Int): PersonConnection
+  posts(where: PostWhereInput, after: String, first: Int, before: String, last: Int): PostConnection
 }

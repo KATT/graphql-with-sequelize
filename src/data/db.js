@@ -74,7 +74,7 @@ Tag.belongsToMany(Post, { through: PostTag });
 
 
 Conn.sync({ force: false }).then(async ()=> {
-  const nEntries = 10;
+  const nEntries = 100;
   const count = await Person.count();
 
   const nEntriesToCreate = Math.max(nEntries - count, 0);
