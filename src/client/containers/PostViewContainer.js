@@ -1,43 +1,47 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import { Link } from 'react-router';
+import {IndexRoute} from 'react-router';
 
-class PostListItem extends React.Component {
+class PostViewContainer extends React.Component {
   render() {
     const {
       post: {
         id,
         title,
         tagNames,
+        content,
         person: {
           firstName,
           lastName
         }
       }
     } = this.props;
+    console.log('PostViewContainer: ', this.props);
+
     return (
       <div>
-        <h2><Link to={`/posts/${id}`}>{title}</Link></h2>
-        <p><strong>Written by</strong> {firstName} {lastName}</p>
-        <p><strong>Tags:</strong> {tagNames.join(', ')}</p>
+        <h1>{title}</h1>
+
+        {content.split('\n').map((chunk, index) => <p key={index}>{chunk}</p>)}
       </div>
     );
   }
 }
 
-export default Relay.createContainer(PostListItem, {
+export default Relay.createContainer(PostViewContainer, {
   fragments: {
     post: () => Relay.QL`
       fragment on Post {
-        id
         title
         tagNames
+        content
         person {
           firstName
           lastName
         }
       }
     `,
-  },
+  }
 });
+

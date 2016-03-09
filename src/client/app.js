@@ -14,12 +14,15 @@ const history = useRouterHistory(createHistory)({ queryKey: false });
 
 import reducers from './reducers';
 import Root from './containers/Root';
-
-import PostsContainer from './containers/PostsContainer';
-import PostList from './components/PostList';
-import PeopleContainer from './containers/PeopleContainer';
-import PersonList from './components/PersonList';
 import ViewerQueries from './queries/ViewerQueries';
+
+import PostViewContainer from './containers/PostViewContainer';
+import PostsContainer from './containers/PostsContainer';
+import PeopleContainer from './containers/PeopleContainer';
+
+import PostList from './components/PostList';
+import PersonList from './components/PersonList';
+
 const rootReducer = combineReducers(reducers);
 
 const middlewareStore = applyMiddleware.apply(this, [
@@ -46,6 +49,11 @@ ReactDOM.render(
             queries={ViewerQueries}
           />
         </Route>
+        <Route
+          path="/posts/:id" 
+          component={PostViewContainer}
+          queries={{post: () => Relay.QL`query { node(id: $id) }`}}
+          />
       </Route>
     </RelayRouter>
   </Provider>,
