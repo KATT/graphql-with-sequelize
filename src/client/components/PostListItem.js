@@ -19,7 +19,7 @@ class PostListItem extends React.Component {
         <h2>{title}</h2>
         <p><strong>Written by</strong> {firstName} {lastName}</p>
         <p><strong>Tags:</strong> {tagNames.join(', ')}</p>
-        {content.split('\n').map(chunk => <p>{chunk}</p>)}
+        {content.split('\n').map((chunk, index) => <p key={index}>{chunk}</p>)}
       </div>
     );
   }
