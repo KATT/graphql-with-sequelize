@@ -1,11 +1,11 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import PostListItem from './PostListItem';
+import PersonListItem from './PersonListItem';
 
 const initalLimit = 50;
 
-class PostList extends React.Component {
+class PersonListItemList extends React.Component {
   state = {
     isLoading: false,
   }
@@ -26,12 +26,12 @@ class PostList extends React.Component {
     }
   }
 
-  onSearchTitleKeyUp = (e) => {
+  onSearchFirstNameKeyUp = (e) => {
     const {value} = e.target;
     const where = {};
     const limit = initalLimit;
     if (e.target.value) {
-      where.title = {
+      where.firstName = {
         iLike: `%${value}%`
       };
     }
@@ -55,34 +55,34 @@ class PostList extends React.Component {
     window.removeEventListener('scroll', this.onScroll);
   }
 
-  renderPosts() {
-    return this.props.viewer.posts.edges.map(edge =>
-      <PostListItem
+  renderPersonListItems() {
+    return this.props.viewer.people.edges.map(edge =>
+      <PersonListItem
         key={edge.node.id}
-        post={edge.node}
+        person={edge.node}
       />
     );
   }
   render() {
-    const count = this.props.viewer.posts.count;
+    const count = this.props.viewer.people.count;
     return (
       <section className="main">
-        <h1>Posts</h1>
+        <h1>PersonListItems</h1>
         <p>
-          <label>Search through the titles: <input onKeyUp={this.onSearchTitleKeyUp} /></label>
+          <label>Search through the firstNames: <input onKeyUp={this.onSearchFirstNameKeyUp} /></label>
         </p>
         {this.state.isLoading && <p>Loading..</p>}
         <p>Showing <strong>{this.props.relay.variables.limit}</strong> of the total <strong>{count}</strong> matches.</p>
-        <ul className="post-list">
-          {this.renderPosts()}
+        <ul className="person-list">
+          {this.renderPersonListItems()}
         </ul>
-        {this.state.isLoading && <p>Loading posts..</p>}
+        {this.state.isLoading && <p>Loading people..</p>}
       </section>
     );
   }
 }
 
-export default Relay.createContainer(PostList, {
+export default Relay.createContainer(PersonListItemList, {
   initialVariables: {
     limit: initalLimit,
     where: {},
@@ -91,12 +91,12 @@ export default Relay.createContainer(PostList, {
   fragments: {
     viewer: () => Relay.QL`
       fragment on viewer {
-        posts(first: $limit where: $where) {
+        people(first: $limit where: $where) {
           count
           edges {
             node {
               id,
-              ${PostListItem.getFragment('post')},
+              ${PersonListItem.getFragment('person')},
             },
           },
         }

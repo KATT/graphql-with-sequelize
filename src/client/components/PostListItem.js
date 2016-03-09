@@ -1,7 +1,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-class Post extends React.Component {
+class PostListItem extends React.Component {
   render() {
     const {
       post: {
@@ -19,13 +19,13 @@ class Post extends React.Component {
         <h2>{title}</h2>
         <p><strong>Written by</strong> {firstName} {lastName}</p>
         <p><strong>Tags:</strong> {tagNames.join(', ')}</p>
-        {content.split('\n').map(chunk => <p>{chunk}</p>)}
+        {content.split('\n').map((chunk, index) => <p key={index}>{chunk}</p>)}
       </div>
     );
   }
 }
 
-export default Relay.createContainer(Post, {
+export default Relay.createContainer(PostListItem, {
   fragments: {
     post: () => Relay.QL`
       fragment on Post {
