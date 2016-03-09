@@ -1,7 +1,7 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import Post from './Post';
+import PostListItem from './PostListItem';
 
 const initalLimit = 50;
 
@@ -57,7 +57,7 @@ class PostList extends React.Component {
 
   renderPosts() {
     return this.props.viewer.posts.edges.map(edge =>
-      <Post
+      <PostListItem
         key={edge.node.id}
         post={edge.node}
       />
@@ -96,7 +96,7 @@ export default Relay.createContainer(PostList, {
           edges {
             node {
               id,
-              ${Post.getFragment('post')},
+              ${PostListItem.getFragment('post')},
             },
           },
         }
