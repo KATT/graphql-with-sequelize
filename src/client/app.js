@@ -10,15 +10,28 @@ import PostApp from './components/PostApp';
 import PostList from './components/PostList';
 import ViewerQueries from './queries/ViewerQueries';
 
+import { Provider } from 'react-redux';
+import { combineReducers, compose, createStore, applyMiddleware } from 'redux';
+import reducers from './reducers';
+const rootReducer = combineReducers(reducers);
+
+const middlewareStore = applyMiddleware.apply(this, [
+  // add middlewares
+])(createStore);
+
+const store = compose()(middlewareStore)(rootReducer, window.__INITIAL_STATE__ || {});
+
 ReactDOM.render(
-  <RelayRouter>
-    <Route
-      path="/" component={PostApp}>
-      <IndexRoute
-        component={PostList}
-        queries={ViewerQueries}
-      />
-    </Route>
-  </RelayRouter>,
+  <Provider store={store}>
+    <RelayRouter>
+      <Route
+        path="/" component={PostApp}>
+        <IndexRoute
+          component={PostList}
+          queries={ViewerQueries}
+        />
+      </Route>
+    </RelayRouter>
+  </Provider>,
   document.getElementById('root')
 );

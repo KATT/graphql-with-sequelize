@@ -1,8 +1,10 @@
 import React from 'react';
 import Relay from 'react-relay';
+import { connect } from 'react-redux';
 
 class PostApp extends React.Component {
   render() {
+    console.log('PostApp: ', this.props);
     return (
       <div>
         <section className="postapp">
@@ -22,5 +24,7 @@ class PostApp extends React.Component {
     );
   }
 }
-
-export default PostApp
+function select(state) {
+    return state;
+}
+export default connect(select)(PostApp)
