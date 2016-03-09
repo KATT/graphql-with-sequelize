@@ -2,7 +2,7 @@ import 'babel-polyfill';
 
 import { browserHistory } from 'react-router';
 
-import {IndexRoute, Route} from 'react-router';
+import {IndexRoute, Route, useRouterHistory} from 'react-router';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {RelayRouter} from 'react-router-relay';
@@ -14,6 +14,9 @@ import ViewerQueries from './queries/ViewerQueries';
 
 import { Provider } from 'react-redux';
 import { combineReducers, compose, createStore, applyMiddleware } from 'redux';
+import createHistory from 'history/lib/createBrowserHistory';
+const history = useRouterHistory(createHistory)({ queryKey: false });
+
 import reducers from './reducers';
 const rootReducer = combineReducers(reducers);
 
@@ -25,7 +28,7 @@ const store = compose()(middlewareStore)(rootReducer, window.__INITIAL_STATE__ |
 
 ReactDOM.render(
   <Provider store={store}>
-    <RelayRouter>
+    <RelayRouter history={history}>
       <Route
         path="/" component={PostsContainer}>
         <IndexRoute
