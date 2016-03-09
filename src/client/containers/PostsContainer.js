@@ -9,20 +9,7 @@ class PostsContainer extends React.Component {
     console.log('PostsContainer: ', this.props);
     return (
       <div>
-        <Link to='/people'>People</Link>
-        <section className="postapp">
-          <header className="header">
-            <h1>
-              posts
-            </h1>
-          </header>
-
-          {this.props.children}
-
-        </section>
-        <footer className="info">
-
-        </footer>
+        {this.props.children}
       </div>
     );
   }

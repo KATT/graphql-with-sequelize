@@ -9,20 +9,7 @@ class PeopleContainer extends React.Component {
     console.log('PeopleContainer: ', this.props);
     return (
       <div>
-        <Link to='/'>Posts</Link>
-        <section className="peopleapp">
-          <header className="header">
-            <h1>
-              people
-            </h1>
-          </header>
-
-          {this.props.children}
-
-        </section>
-        <footer className="info">
-
-        </footer>
+        {this.props.children}
       </div>
     );
   }
