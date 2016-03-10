@@ -16,6 +16,7 @@ import reducers from './reducers';
 import Root from './containers/Root';
 import ViewerQueries from './queries/ViewerQueries';
 
+import PersonViewContainer from './containers/PersonViewContainer';
 import PostViewContainer from './containers/PostViewContainer';
 import PostsContainer from './containers/PostsContainer';
 import PeopleContainer from './containers/PeopleContainer';
@@ -48,6 +49,11 @@ ReactDOM.render(
             component={PersonList}
             queries={ViewerQueries}
           />
+          <Route
+            path="/people/:id" 
+            component={PersonViewContainer}
+            queries={{person: () => Relay.QL`query { node(id: $id) }`}}
+            />
         </Route>
         <Route
           path="/posts/:id" 

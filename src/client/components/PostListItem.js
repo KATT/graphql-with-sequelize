@@ -11,6 +11,7 @@ class PostListItem extends React.Component {
         title,
         tagNames,
         person: {
+          id: personId,
           firstName,
           lastName
         }
@@ -19,7 +20,7 @@ class PostListItem extends React.Component {
     return (
       <div>
         <h2><Link to={`/posts/${id}`}>{title}</Link></h2>
-        <p><strong>Written by</strong> {firstName} {lastName}</p>
+        <p><strong>Written by</strong> <Link to={`/people/${personId}`}>{firstName} {lastName}</Link></p>
         <p><strong>Tags:</strong> {tagNames.join(', ')}</p>
       </div>
     );
@@ -34,6 +35,7 @@ export default Relay.createContainer(PostListItem, {
         title
         tagNames
         person {
+          id
           firstName
           lastName
         }

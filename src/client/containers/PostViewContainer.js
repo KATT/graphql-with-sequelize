@@ -1,8 +1,6 @@
 import React from 'react';
 import Relay from 'react-relay';
 
-import {IndexRoute} from 'react-router';
-
 class PostViewContainer extends React.Component {
   render() {
     const {
