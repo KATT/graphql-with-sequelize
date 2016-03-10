@@ -3,6 +3,9 @@ import Relay from 'react-relay';
 
 import { Link } from 'react-router';
 
+
+import PersonViewPostList from '../components/PersonViewPostList';
+
 class PersonViewContainer extends React.Component {
   render() {
     const {
@@ -10,7 +13,7 @@ class PersonViewContainer extends React.Component {
         firstName,
         lastName,
         posts,
-      }
+      },
     } = this.props;
     console.log('PersonViewContainer: ', this.props);
 
@@ -18,14 +21,7 @@ class PersonViewContainer extends React.Component {
       <div>
         <h1>{firstName} {lastName}</h1>
 
-        <h2>Posts</h2>
-        <ul>
-          {posts.edges.map(edge => (
-            <li key={edge.node.id}>
-              <Link to={`/posts/${edge.node.id}`}>{edge.node.title}</Link>
-            </li>
-          ))}
-        </ul>
+        <PersonViewPostList {...this.props} />
       </div>
     );
   }
@@ -37,14 +33,7 @@ export default Relay.createContainer(PersonViewContainer, {
       fragment on Person {
         firstName
         lastName
-        posts(first: 100) {
-          edges {
-            node {
-              id
-              title
-            }
-          }
-        }
+        ${PersonViewPostList.getFragment('person')}
       }
     `,
   }
