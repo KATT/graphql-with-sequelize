@@ -6,7 +6,10 @@ import {
   GraphQLInt,
   GraphQLSchema,
   GraphQLList,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLEnumType,
+  GraphQLNonNull,
+  GraphQLBoolean,
 } from 'graphql';
 
 
@@ -195,6 +198,31 @@ const PersonWhereInput = new GraphQLInputObjectType({
 });
 
 
+const PersonSortKeyInput = new GraphQLEnumType({
+  name: PersonSortKeyInput,
+  values: {
+    firstName: {
+      value: 'firstName',
+    },
+    lastName: {
+      value: 'lastName',
+    },
+  },
+})
+
+const PersonOrderInput = new GraphQLInputObjectType({
+  name: 'PersonOrderInput',
+  fields: () => ({
+    key: {
+      type: new GraphQLNonNull(PersonSortKeyInput),
+    },
+    desc: {
+      description: 'Order in descending order (default not)',
+      type: GraphQLBoolean,
+    },
+  })
+});
+
 const viewer = new GraphQLObjectType({
   name: 'viewer',
   fields: () => ({
@@ -208,6 +236,9 @@ const viewer = new GraphQLObjectType({
         },
         wherePost: {
           type: PostWhereInput
+        },
+        order: {
+          type: new GraphQLList(PersonOrderInput),
         },
         ...connectionArgs,
       },

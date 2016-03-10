@@ -60,6 +60,11 @@ type PersonEdge {
   cursor: String!
 }
 
+input PersonOrderInput {
+  key: undefined!
+  desc: Boolean
+}
+
 input PersonWhereInput {
   firstName: OperatorsStringEqILikeInput
   lastName: OperatorsStringInput
@@ -114,8 +119,13 @@ type TagEdge {
   cursor: String!
 }
 
+enum undefined {
+  firstName
+  lastName
+}
+
 type viewer {
   node(id: ID!): Node
-  people(where: PersonWhereInput, wherePost: PostWhereInput, after: String, first: Int, before: String, last: Int): PersonConnection
+  people(where: PersonWhereInput, wherePost: PostWhereInput, order: [PersonOrderInput], after: String, first: Int, before: String, last: Int): PersonConnection
   posts(where: PostWhereInput, after: String, first: Int, before: String, last: Int): PostConnection
 }

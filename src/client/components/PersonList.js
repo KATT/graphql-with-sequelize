@@ -10,6 +10,19 @@ class PersonListItemList extends React.Component {
     isLoading: false,
   }
 
+  setVariables = (vars) => {
+    console.log('setVariables', vars);
+
+    this.setState({isLoading: true}, () => {
+      this.props.relay.setVariables(vars, (readyState) => { 
+        // this gets called twice https://goo.gl/ZsQ3Dy
+        if (readyState.done) {
+          this.setState({isLoading: false});
+        }
+      });
+    });    
+  }
+
   onScroll = () => {
     const isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight;
     if (!this.state.isLoading && isAtBottom) {
@@ -48,6 +61,20 @@ class PersonListItemList extends React.Component {
     });
   }
 
+  onOrderChange = (e) => {
+    const key = e.target.value;
+
+    const order = [];
+    if (key) {
+      order.push({key})
+    }
+
+    this.setVariables({
+      order,
+      limit: initalLimit,
+    });
+  }
+
   componentDidMount() {
     window.addEventListener('scroll', this.onScroll);
   }
@@ -71,6 +98,14 @@ class PersonListItemList extends React.Component {
         <p>
           <label>Search through the firstNames: <input onKeyUp={this.onSearchFirstNameKeyUp} /></label>
         </p>
+        <p>
+          Order by: 
+          <select onChange={this.onOrderChange}>
+            <option>default</option>
+            <option>firstName</option>
+            <option>lastName</option>
+          </select>
+        </p>
         {this.state.isLoading && <p>Loading..</p>}
         <p>Showing <strong>{this.props.relay.variables.limit}</strong> of the total <strong>{count}</strong> matches.</p>
         <ul className="person-list">
@@ -86,12 +121,13 @@ export default Relay.createContainer(PersonListItemList, {
   initialVariables: {
     limit: initalLimit,
     where: {},
+    order: [],
   },
 
   fragments: {
     viewer: () => Relay.QL`
       fragment on viewer {
-        people(first: $limit where: $where) {
+        people(first: $limit where: $where order: $order) {
           count
           edges {
             node {

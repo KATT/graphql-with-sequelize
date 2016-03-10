@@ -154,6 +154,17 @@ export function getInclude(args, includeList) {
   return include;
 }
 
+export function getOrder({order}) {
+  if (!order) {
+    return undefined;
+  }
+
+  return order.map(({key, desc}) => {
+    const direction = (desc ? 'DESC' : 'ASC');
+    return [key, direction];
+  });
+}
+
 export function getRelayQueryParams(args, include = []) {
   validateUnsupportedArg(args, 'before');
   validateUnsupportedArg(args, 'last');
@@ -164,6 +175,7 @@ export function getRelayQueryParams(args, include = []) {
   query.offset = getOffset(args);
   query.where = getConditionsFromWhereArg(args.where);
   query.include = getInclude(args, include);
+  query.order = getOrder(args);
 
   console.log('getRelayQueryParams query', query);
 
