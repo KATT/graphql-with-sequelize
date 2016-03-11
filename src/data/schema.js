@@ -1,5 +1,3 @@
-import Db from './db';
-
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -51,7 +49,7 @@ const postType = new GraphQLObjectType({
     title: { type: GraphQLString },
     tags: {
       type: postTagConnection.connectionType,
-      args: postTagConnection.connectionArgs,
+      args: {},
       resolve: postTagConnection.resolve,
     },
     person: {
@@ -77,13 +75,7 @@ const personPostConnection = sequelizeConnection({
   connectionFields: {
     total: {
       type: GraphQLInt,
-      resolve: ({source}) => {
-        /*
-         * We return a object containing the source, edges and more as the connection result
-         * You there for need to extract source from the usual source argument
-         */
-        return source.countPosts();
-      }
+      resolve: ({source}) => source.countPosts(),
     }
   },
 });
@@ -117,13 +109,7 @@ const postTagConnection = sequelizeConnection({
   connectionFields: {
     total: {
       type: GraphQLInt,
-      resolve: ({source}) => {
-        /*
-         * We return a object containing the source, edges and more as the connection result
-         * You there for need to extract source from the usual source argument
-         */
-        return source.countTags();
-      }
+      resolve: ({source}) => source.countTags(),
     }
   },
 });
@@ -137,7 +123,10 @@ const peopleConnection = sequelizeConnection({
     if (key === "where") {
       return getConditionsFromWhereArg(value);
     }
-  }
+  },
+  // connectionFields: {
+  //   count: { type: GraphQLInt, }
+  // }
 });
 
 
@@ -146,14 +135,6 @@ const postsConnection = sequelizeConnection({
   nodeType: postType,
   target: Post,
 });
-
-
-nodeTypeMapper.mapTypes({
-  [Person.name]: personType,
-  [Post.name]: postType,
-  [Tag.name]: tagType,
-});
-
 
 const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
@@ -168,18 +149,11 @@ const PersonWhereInput = new GraphQLInputObjectType({
   })
 });
 
-const queryType = new GraphQLObjectType({
-  name: 'RootType',
-  fields: {
-    person: {
-      type: personType,
-      args: {
-        id: {
-          type: new GraphQLNonNull(GraphQLInt)
-        },
-      },
-      resolve: resolver(Person)
-    },
+const viewerType = new GraphQLObjectType({
+  name: 'Viewer',
+  description: 'root viewer for queries',
+  fields: () => ({
+    id: globalIdField('Viewer'),
     people: {
       type: peopleConnection.connectionType,
       args: {
@@ -195,8 +169,31 @@ const queryType = new GraphQLObjectType({
       },
       resolve: postsConnection.resolve
     },
-    node: nodeField
-  }
+  }),
+});
+
+
+
+nodeTypeMapper.mapTypes({
+  [Person.name]: personType,
+  [Post.name]: postType,
+  [Tag.name]: tagType,
+  Viewer: { type: viewerType },
+});
+
+
+
+const queryType = new GraphQLObjectType({
+  name: 'RootType',
+  fields: {
+    viewer: {
+      type: viewerType,
+      resolve: () => ({
+        id: 1
+      })
+    },
+    node: nodeField,
+  },
 });
 
 export const schema = new GraphQLSchema({

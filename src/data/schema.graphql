@@ -2,33 +2,9 @@ interface Node {
   id: ID!
 }
 
-input OperatorsIntInput {
-  eq: Int
-  ne: Int
-  in: [Int]
-  notIn: [Int]
-  lt: Int
-  lte: Int
-  gt: Int
-  gte: Int
-  between: [Int]
-  notBetween: [Int]
-}
-
 input OperatorsStringEqILikeInput {
   eq: String
   ne: String
-  iLike: String
-  notILike: String
-}
-
-input OperatorsStringInput {
-  eq: String
-  ne: String
-  in: [String]
-  notIn: [String]
-  like: String
-  notLike: String
   iLike: String
   notILike: String
 }
@@ -40,92 +16,94 @@ type PageInfo {
   endCursor: String
 }
 
-type Person implements Node {
+type PeopleConnection {
+  pageInfo: PageInfo!
+  edges: [PeopleEdge]
+}
+
+enum PeopleConnectionOrder {
+  ID
+}
+
+type PeopleEdge {
+  node: Person
+  cursor: String!
+}
+
+type Person {
   id: ID!
   firstName: String
   lastName: String
   email: String
   age: Int
-  posts(after: String, first: Int, before: String, last: Int): PostConnection
+  posts(after: String, first: Int, before: String, last: Int, orderBy: [PersonPostConnectionOrder]): PersonPostConnection
 }
 
-type PersonConnection {
+type PersonPostConnection {
   pageInfo: PageInfo!
-  edges: [PersonEdge]
-  count: Int
+  edges: [PersonPostEdge]
+  total: Int
 }
 
-type PersonEdge {
-  node: Person
-  cursor: String!
+enum PersonPostConnectionOrder {
+  ID
 }
 
-input PersonOrderInput {
-  key: undefined!
-  desc: Boolean
-}
-
-input PersonWhereInput {
-  firstName: OperatorsStringEqILikeInput
-  lastName: OperatorsStringInput
-  age: OperatorsIntInput
-  _and: PersonWhereInput
-  _or: [PersonWhereInput]
-}
-
-type Post implements Node {
-  id: ID!
-  title: String
-  content: String
-  person: Person
-  tags(after: String, first: Int, before: String, last: Int): TagConnection
-  tagNames(after: String, first: Int, before: String, last: Int): [String]
-}
-
-type PostConnection {
-  pageInfo: PageInfo!
-  edges: [PostEdge]
-  count: Int
-}
-
-type PostEdge {
+type PersonPostEdge {
   node: Post
   cursor: String!
 }
 
-input PostWhereInput {
-  title: OperatorsStringInput
-  content: OperatorsStringInput
+input PersonWhereInput {
+  firstName: OperatorsStringEqILikeInput
+  _and: PersonWhereInput
+  _or: [PersonWhereInput]
 }
 
-type Query {
-  node(id: ID!): Node
-  viewer: viewer
-}
-
-type Tag implements Node {
+type Post {
   id: ID!
-  name: String
+  title: String
+  tags: PostTagConnection
+  person: Person
 }
 
-type TagConnection {
+type PostsConnection {
   pageInfo: PageInfo!
-  edges: [TagEdge]
-  count: Int
+  edges: [PostsEdge]
 }
 
-type TagEdge {
+enum PostsConnectionOrder {
+  ID
+}
+
+type PostsEdge {
+  node: Post
+  cursor: String!
+}
+
+type PostTagConnection {
+  pageInfo: PageInfo!
+  edges: [PostTagEdge]
+  total: Int
+}
+
+type PostTagEdge {
   node: Tag
   cursor: String!
 }
 
-enum undefined {
-  firstName
-  lastName
+type RootType {
+  viewer: Viewer
+  node(id: ID!): Node
 }
 
-type viewer {
-  node(id: ID!): Node
-  people(where: PersonWhereInput, wherePost: PostWhereInput, order: [PersonOrderInput], after: String, first: Int, before: String, last: Int): PersonConnection
-  posts(where: PostWhereInput, after: String, first: Int, before: String, last: Int): PostConnection
+type Tag {
+  id: ID!
+  name: String
+}
+
+type Viewer {
+  id: ID!
+  people(after: String, first: Int, before: String, last: Int, orderBy: [PeopleConnectionOrder], where: PersonWhereInput): PeopleConnection
+  posts(after: String, first: Int, before: String, last: Int, orderBy: [PostsConnectionOrder]): PostsConnection
 }
