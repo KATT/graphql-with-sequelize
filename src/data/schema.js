@@ -48,7 +48,12 @@ const postType = new GraphQLObjectType({
       type: postTagConnection.connectionType,
       args: postTagConnection.connectionArgs,
       resolve: postTagConnection.resolve,
-    }
+    },
+    person: {
+      type: personType,
+      args: {},
+      resolve: resolver(Post.Person),
+    },
   })
 });
 
@@ -76,17 +81,26 @@ const personPostConnection = sequelizeConnection({
       }
     }
   },
-  edgeFields: {
-    wasCreatedByPerson: {
-      type: GraphQLBoolean,
-      resolve: (edge) => {
-        /*
-         * We attach the connection source to edges
-         */
-        return edge.node.createdBy === edge.source.id;
-      }
+});
+
+const personType = new GraphQLObjectType({
+  name: Person.name,
+  fields: {
+    id: globalIdField(Person.name),
+    firstName: {type: GraphQLString },
+    lastName : {type: GraphQLString },
+    posts: {
+      type: personPostConnection.connectionType,
+      args: personPostConnection.connectionArgs,
+      resolve: personPostConnection.resolve
     }
   }
+});
+
+const postPersonConnection = sequelizeConnection({
+  name: 'PostPerson',
+  nodeType: personType,
+  target: Post.Person,
 });
 
 const postTagConnection = sequelizeConnection({
@@ -105,33 +119,9 @@ const postTagConnection = sequelizeConnection({
       }
     }
   },
-  edgeFields: {
-    wasCreatedByPerson: {
-      type: GraphQLBoolean,
-      resolve: (edge) => {
-        /*
-         * We attach the connection source to edges
-         */
-        return edge.node.createdBy === edge.source.id;
-      }
-    }
-  }
 });
 
 
-const personType = new GraphQLObjectType({
-  name: Person.name,
-  fields: {
-    id: globalIdField(Person.name),
-    firstName: {type: GraphQLString },
-    lastName : {type: GraphQLString },
-    posts: {
-      type: personPostConnection.connectionType,
-      args: personPostConnection.connectionArgs,
-      resolve: personPostConnection.resolve
-    }
-  }
-});
 
 
 const peopleConnection = sequelizeConnection({
@@ -141,9 +131,17 @@ const peopleConnection = sequelizeConnection({
 });
 
 
+const postsConnection = sequelizeConnection({
+  name: 'Posts',
+  nodeType: postType,
+  target: Post,
+});
+
+
 nodeTypeMapper.mapTypes({
   [Person.name]: personType,
   [Post.name]: postType,
+  [Tag.name]: tagType,
 });
 
 const queryType = new GraphQLObjectType({
@@ -164,6 +162,13 @@ const queryType = new GraphQLObjectType({
         ...peopleConnection.connectionArgs,
       },
       resolve: peopleConnection.resolve
+    },
+    posts: {
+      type: postsConnection.connectionType,
+      args: {
+        ...postsConnection.connectionArgs,
+      },
+      resolve: postsConnection.resolve
     },
     node: nodeField
   }
