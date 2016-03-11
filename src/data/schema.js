@@ -130,6 +130,17 @@ const peopleConnection = sequelizeConnection({
   name: 'People',
   nodeType: personType,
   target: Person,
+  orderBy: new GraphQLEnumType({
+    name: 'PeopleConnectionOrder',
+    values: {
+      firstNameASC: {value: ['firstName', 'ASC']},
+      firstNameDESC: {value: ['firstName', 'DESC']},
+      lastNameASC: {value: ['lastName', 'ASC']},
+      lastNameDESC: {value: ['lastName', 'DESC']},
+      ageASC: {value: ['age', 'ASC']},
+      ageDESC: {value:  ['age', 'DESC']}
+    }
+  }),
   where(key, value) {
     if (key === "where") {
       return getConditionsFromWhereArg(value);

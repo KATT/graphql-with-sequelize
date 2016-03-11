@@ -86,12 +86,13 @@ export default Relay.createContainer(PostList, {
   initialVariables: {
     limit: initalLimit,
     where: {},
+    orderBy: null,
   },
 
   fragments: {
     viewer: () => Relay.QL`
       fragment on Viewer {
-        posts(first: $limit where: $where) {
+        posts(first: $limit where: $where orderBy: $orderBy) {
           count
           edges {
             node {

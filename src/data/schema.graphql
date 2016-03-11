@@ -23,7 +23,12 @@ type PeopleConnection {
 }
 
 enum PeopleConnectionOrder {
-  ID
+  firstNameASC
+  firstNameDESC
+  lastNameASC
+  lastNameDESC
+  ageASC
+  ageDESC
 }
 
 type PeopleEdge {
@@ -62,11 +67,12 @@ input PersonWhereInput {
   _or: [PersonWhereInput]
 }
 
-type Post {
+type Post implements Node {
   id: ID!
   title: String
   content: String
   tags: PostTagConnection
+  tagNames: [String]
   person: Person
 }
 

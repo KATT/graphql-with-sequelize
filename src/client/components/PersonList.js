@@ -64,13 +64,12 @@ class PersonListItemList extends React.Component {
   onOrderChange = (e) => {
     const key = e.target.value;
 
-    const order = [];
+    let orderBy = null;
     if (key) {
-      order.push({key})
+      orderBy = key;
     }
-
     this.setVariables({
-      order,
+      orderBy,
       limit: initalLimit,
     });
   }
@@ -102,8 +101,10 @@ class PersonListItemList extends React.Component {
           Order by: 
           <select onChange={this.onOrderChange}>
             <option>default</option>
-            <option>firstName</option>
-            <option>lastName</option>
+            <option>firstNameASC</option>
+            <option>firstNameDESC</option>
+            <option>lastNameASC</option>
+            <option>lastNameDESC</option>
           </select>
         </p>
         {this.state.isLoading && <p>Loading..</p>}
@@ -121,13 +122,13 @@ export default Relay.createContainer(PersonListItemList, {
   initialVariables: {
     limit: initalLimit,
     where: {},
-    order: [],
+    orderBy: null,
   },
 
   fragments: {
     viewer: () => Relay.QL`
       fragment on Viewer {
-        people(first: $limit where: $where) {
+        people(first: $limit where: $where orderBy: $orderBy) {
           count
           edges {
             node {
