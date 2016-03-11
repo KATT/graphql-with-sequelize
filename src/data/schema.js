@@ -53,6 +53,14 @@ const postType = new GraphQLObjectType({
       args: {},
       resolve: postTagConnection.resolve,
     },
+    tagNames: {
+      type: new GraphQLList(GraphQLString),
+      args: {},
+      async resolve (source) {
+        const tags = await source.getTags();
+        return tags.map(({name}) => name);
+      }
+    },
     person: {
       type: personType,
       args: {},
