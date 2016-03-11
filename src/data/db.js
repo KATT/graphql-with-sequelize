@@ -45,7 +45,7 @@ const Post = Conn.define('Post', {
   }
 });
 
-const Tag = Conn.define('tag', {
+const Tag = Conn.define('Tag', {
   name: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -67,7 +67,7 @@ const Tag = Conn.define('tag', {
 Person.Posts = Person.hasMany(Post);
 Post.Person = Post.belongsTo(Person);
 
-const PostTag = Conn.define('post_tag', {});
+const PostTag = Conn.define('PostTag', {});
 
 Post.Tags = Post.belongsToMany(Tag, { through: PostTag });
 Tag.Posts = Tag.belongsToMany(Post, { through: PostTag });
