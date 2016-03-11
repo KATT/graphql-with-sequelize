@@ -49,7 +49,7 @@ const postType = new GraphQLObjectType({
 const personPostConnection = sequelizeConnection({
   name: 'PersonPost',
   nodeType: postType,
-  target: Post,
+  target: Person.Posts,
   connectionFields: {
     total: {
       type: GraphQLInt,

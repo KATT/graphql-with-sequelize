@@ -64,13 +64,13 @@ const Tag = Conn.define('tag', {
 
 
 // Relations
-Person.hasMany(Post);
-Post.belongsTo(Person);
+Person.Posts = Person.hasMany(Post);
+Post.Person = Post.belongsTo(Person);
 
 const PostTag = Conn.define('post_tag', {});
 
-Post.belongsToMany(Tag, { through: PostTag });
-Tag.belongsToMany(Post, { through: PostTag });
+Post.Tags = Post.belongsToMany(Tag, { through: PostTag });
+Tag.Posts = Tag.belongsToMany(Post, { through: PostTag });
 
 
 Conn.sync({ force: false }).then(async ()=> {
