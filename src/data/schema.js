@@ -34,15 +34,29 @@ const {
 const {
   Person,
   Post,
+  Tag,
 } = sequelize.models;
 
 
 
 const postType = new GraphQLObjectType({
   name: Post.name,
-  fields: {
+  fields: () => ({
     id: globalIdField(Post.name),
     title: { type: GraphQLString },
+    tags: {
+      type: postTagConnection.connectionType,
+      args: postTagConnection.connectionArgs,
+      resolve: postTagConnection.resolve,
+    }
+  })
+});
+
+const tagType = new GraphQLObjectType({
+  name: Tag.name,
+  fields: {
+    id: globalIdField(Tag.name),
+    name: { type: GraphQLString },
   }
 });
 
@@ -74,6 +88,36 @@ const personPostConnection = sequelizeConnection({
     }
   }
 });
+
+const postTagConnection = sequelizeConnection({
+  name: 'PostTag',
+  nodeType: tagType,
+  target: Post.Tags,
+  connectionFields: {
+    total: {
+      type: GraphQLInt,
+      resolve: ({source}) => {
+        /*
+         * We return a object containing the source, edges and more as the connection result
+         * You there for need to extract source from the usual source argument
+         */
+        return source.countTags();
+      }
+    }
+  },
+  edgeFields: {
+    wasCreatedByPerson: {
+      type: GraphQLBoolean,
+      resolve: (edge) => {
+        /*
+         * We attach the connection source to edges
+         */
+        return edge.node.createdBy === edge.source.id;
+      }
+    }
+  }
+});
+
 
 const personType = new GraphQLObjectType({
   name: Person.name,
