@@ -13,7 +13,7 @@ const Conn = new Sequelize(
   }
 );
 
-const Person = Conn.define('person', {
+const Person = Conn.define('Person', {
   firstName: {
     type: Sequelize.STRING,
     allowNull: false
@@ -34,7 +34,7 @@ const Person = Conn.define('person', {
   }
 });
 
-const Post = Conn.define('post', {
+const Post = Conn.define('Post', {
   title: {
     type: Sequelize.STRING,
     allowNull: false
