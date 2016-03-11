@@ -89,6 +89,8 @@ const personType = new GraphQLObjectType({
     id: globalIdField(Person.name),
     firstName: {type: GraphQLString },
     lastName : {type: GraphQLString },
+    email    : {type: GraphQLString },
+    age      : {type: GraphQLInt },
     posts: {
       type: personPostConnection.connectionType,
       args: personPostConnection.connectionArgs,
