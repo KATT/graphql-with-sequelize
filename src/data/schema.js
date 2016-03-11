@@ -19,6 +19,11 @@ import {
   connectionArgs
 } from 'graphql-relay';
 
+import {
+  getConditionsFromWhereArg,
+  operatorsFieldInput,
+} from './lib/graphql-sequelize-helpers';
+
 import grapqlSequelize, {resolver} from 'graphql-sequelize';
 
 const {sequelizeConnection, sequelizeNodeInterface} = grapqlSequelize.relay;
@@ -124,12 +129,15 @@ const postTagConnection = sequelizeConnection({
 });
 
 
-
-
 const peopleConnection = sequelizeConnection({
   name: 'People',
   nodeType: personType,
   target: Person,
+  where(key, value) {
+    if (key === "where") {
+      return getConditionsFromWhereArg(value);
+    }
+  }
 });
 
 
@@ -144,6 +152,20 @@ nodeTypeMapper.mapTypes({
   [Person.name]: personType,
   [Post.name]: postType,
   [Tag.name]: tagType,
+});
+
+
+const PersonWhereInput = new GraphQLInputObjectType({
+  name: 'PersonWhereInput',
+  fields: () => ({
+    firstName: operatorsFieldInput(GraphQLString, ['eq', 'iLike']),
+    _and: {
+      type: PersonWhereInput,
+    },
+    _or: {
+      type: new GraphQLList(PersonWhereInput),
+    },
+  })
 });
 
 const queryType = new GraphQLObjectType({
@@ -162,6 +184,7 @@ const queryType = new GraphQLObjectType({
       type: peopleConnection.connectionType,
       args: {
         ...peopleConnection.connectionArgs,
+        where: { type: PersonWhereInput }
       },
       resolve: peopleConnection.resolve
     },
