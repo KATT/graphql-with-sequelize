@@ -90,7 +90,7 @@ export default Relay.createContainer(PostList, {
 
   fragments: {
     viewer: () => Relay.QL`
-      fragment on viewer {
+      fragment on Viewer {
         posts(first: $limit where: $where) {
           count
           edges {

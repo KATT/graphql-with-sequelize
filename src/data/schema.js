@@ -47,6 +47,7 @@ const postType = new GraphQLObjectType({
   fields: () => ({
     id: globalIdField(Post.name),
     title: { type: GraphQLString },
+    content: { type: GraphQLString },
     tags: {
       type: postTagConnection.connectionType,
       args: {},
@@ -57,7 +58,8 @@ const postType = new GraphQLObjectType({
       args: {},
       resolve: resolver(Post.Person),
     },
-  })
+  }),
+  interfaces: [nodeInterface],
 });
 
 const tagType = new GraphQLObjectType({
@@ -73,7 +75,7 @@ const personPostConnection = sequelizeConnection({
   nodeType: postType,
   target: Person.Posts,
   connectionFields: {
-    total: {
+    count: {
       type: GraphQLInt,
       resolve: ({source}) => source.countPosts(),
     }
@@ -93,7 +95,8 @@ const personType = new GraphQLObjectType({
       args: personPostConnection.connectionArgs,
       resolve: personPostConnection.resolve
     }
-  }
+  },
+  interfaces: [nodeInterface],
 });
 
 const postPersonConnection = sequelizeConnection({
@@ -107,7 +110,7 @@ const postTagConnection = sequelizeConnection({
   nodeType: tagType,
   target: Post.Tags,
   connectionFields: {
-    total: {
+    count: {
       type: GraphQLInt,
       resolve: ({source}) => source.countTags(),
     }
@@ -124,9 +127,13 @@ const peopleConnection = sequelizeConnection({
       return getConditionsFromWhereArg(value);
     }
   },
-  // connectionFields: {
-  //   count: { type: GraphQLInt, }
-  // }
+  connectionFields: {
+    count: { 
+      type: GraphQLInt, 
+      resolve: () => 0,
+    }
+  },
+  interfaces: [nodeInterface],
 });
 
 
@@ -134,18 +141,37 @@ const postsConnection = sequelizeConnection({
   name: 'Posts',
   nodeType: postType,
   target: Post,
+  where(key, value) {
+    if (key === "where") {
+      return getConditionsFromWhereArg(value);
+    }
+  },
+  connectionFields: {
+    count: { 
+      type: GraphQLInt, 
+      resolve: () => 0,
+    }
+  }
 });
 
 const PersonWhereInput = new GraphQLInputObjectType({
   name: 'PersonWhereInput',
   fields: () => ({
     firstName: operatorsFieldInput(GraphQLString, ['eq', 'iLike']),
+    lastName: operatorsFieldInput(GraphQLString, ['eq', 'iLike']),
     _and: {
       type: PersonWhereInput,
     },
     _or: {
       type: new GraphQLList(PersonWhereInput),
     },
+  })
+});
+
+const PostWhereInput = new GraphQLInputObjectType({
+  name: 'PostWhereInput',
+  fields: () => ({
+    title: operatorsFieldInput(GraphQLString, ['eq', 'iLike']),
   })
 });
 
@@ -158,7 +184,7 @@ const viewerType = new GraphQLObjectType({
       type: peopleConnection.connectionType,
       args: {
         ...peopleConnection.connectionArgs,
-        where: { type: PersonWhereInput }
+        where: { type: PersonWhereInput },
       },
       resolve: peopleConnection.resolve
     },
@@ -166,12 +192,12 @@ const viewerType = new GraphQLObjectType({
       type: postsConnection.connectionType,
       args: {
         ...postsConnection.connectionArgs,
+        where: { type: PostWhereInput },
       },
       resolve: postsConnection.resolve
     },
   }),
 });
-
 
 
 nodeTypeMapper.mapTypes({

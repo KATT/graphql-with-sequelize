@@ -9,14 +9,17 @@ class PostListItem extends React.Component {
       post: {
         id,
         title,
-        tagNames,
+        tags,
         person: {
           id: personId,
           firstName,
-          lastName
+          lastName,
         }
       }
     } = this.props;
+
+    const tagNames = tags.edges.map(({node}) => node.name).sort();
+
     return (
       <div>
         <h2><Link to={`/posts/${id}`}>{title}</Link></h2>
@@ -33,7 +36,13 @@ export default Relay.createContainer(PostListItem, {
       fragment on Post {
         id
         title
-        tagNames
+        tags {
+          edges {
+            node {
+              name
+            }
+          }
+        }
         person {
           id
           firstName

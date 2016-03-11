@@ -19,6 +19,7 @@ type PageInfo {
 type PeopleConnection {
   pageInfo: PageInfo!
   edges: [PeopleEdge]
+  count: Int
 }
 
 enum PeopleConnectionOrder {
@@ -30,7 +31,7 @@ type PeopleEdge {
   cursor: String!
 }
 
-type Person {
+type Person implements Node {
   id: ID!
   firstName: String
   lastName: String
@@ -42,7 +43,7 @@ type Person {
 type PersonPostConnection {
   pageInfo: PageInfo!
   edges: [PersonPostEdge]
-  total: Int
+  count: Int
 }
 
 enum PersonPostConnectionOrder {
@@ -56,6 +57,7 @@ type PersonPostEdge {
 
 input PersonWhereInput {
   firstName: OperatorsStringEqILikeInput
+  lastName: OperatorsStringEqILikeInput
   _and: PersonWhereInput
   _or: [PersonWhereInput]
 }
@@ -63,6 +65,7 @@ input PersonWhereInput {
 type Post {
   id: ID!
   title: String
+  content: String
   tags: PostTagConnection
   person: Person
 }
@@ -70,6 +73,7 @@ type Post {
 type PostsConnection {
   pageInfo: PageInfo!
   edges: [PostsEdge]
+  count: Int
 }
 
 enum PostsConnectionOrder {
@@ -84,12 +88,16 @@ type PostsEdge {
 type PostTagConnection {
   pageInfo: PageInfo!
   edges: [PostTagEdge]
-  total: Int
+  count: Int
 }
 
 type PostTagEdge {
   node: Tag
   cursor: String!
+}
+
+input PostWhereInput {
+  title: OperatorsStringEqILikeInput
 }
 
 type RootType {
@@ -105,5 +113,5 @@ type Tag {
 type Viewer {
   id: ID!
   people(after: String, first: Int, before: String, last: Int, orderBy: [PeopleConnectionOrder], where: PersonWhereInput): PeopleConnection
-  posts(after: String, first: Int, before: String, last: Int, orderBy: [PostsConnectionOrder]): PostsConnection
+  posts(after: String, first: Int, before: String, last: Int, orderBy: [PostsConnectionOrder], where: PostWhereInput): PostsConnection
 }

@@ -126,8 +126,8 @@ export default Relay.createContainer(PersonListItemList, {
 
   fragments: {
     viewer: () => Relay.QL`
-      fragment on viewer {
-        people(first: $limit where: $where order: $order) {
+      fragment on Viewer {
+        people(first: $limit where: $where) {
           count
           edges {
             node {

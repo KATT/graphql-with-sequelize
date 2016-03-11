@@ -7,8 +7,8 @@ class PostViewContainer extends React.Component {
       post: {
         id,
         title,
-        tagNames,
         content,
+        tags,
         person: {
           firstName,
           lastName
@@ -16,10 +16,13 @@ class PostViewContainer extends React.Component {
       }
     } = this.props;
     console.log('PostViewContainer: ', this.props);
+    
+    const tagNames = tags.edges.map(({node}) => node.name).sort();
 
     return (
       <div>
         <h1>{title}</h1>
+        <p><strong>Tags:</strong> {tagNames.join(', ')}</p>
 
         {content.split('\n').map((chunk, index) => <p key={index}>{chunk}</p>)}
       </div>
@@ -32,8 +35,14 @@ export default Relay.createContainer(PostViewContainer, {
     post: () => Relay.QL`
       fragment on Post {
         title
-        tagNames
         content
+        tags {
+          edges {
+            node {
+              name
+            }
+          }
+        }
         person {
           firstName
           lastName
