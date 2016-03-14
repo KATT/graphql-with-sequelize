@@ -216,14 +216,14 @@ const viewerType = new GraphQLObjectType({
       resolve: postsConnection.resolve
     },
   }),
+  interfaces: [nodeInterface],
 });
 
 
 nodeTypeMapper.mapTypes({
   [Person.name]: personType,
   [Post.name]: postType,
-  [Tag.name]: tagType,
-  Viewer: { type: viewerType },
+  Viewer: viewerType,
 });
 
 

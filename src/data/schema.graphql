@@ -116,7 +116,7 @@ type Tag {
   name: String
 }
 
-type Viewer {
+type Viewer implements Node {
   id: ID!
   people(after: String, first: Int, before: String, last: Int, orderBy: [PeopleConnectionOrder], where: PersonWhereInput): PeopleConnection
   posts(after: String, first: Int, before: String, last: Int, orderBy: [PostsConnectionOrder], where: PostWhereInput): PostsConnection
