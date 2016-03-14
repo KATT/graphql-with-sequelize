@@ -22,8 +22,6 @@ import {
   operatorsFieldInput,
 } from './lib/graphql-sequelize-helpers';
 
-import GraphQLEnumStringInputType from './lib/GraphQLEnumStringInputType';
-
 import grapqlSequelize, {resolver} from 'graphql-sequelize';
 
 const {sequelizeConnection, sequelizeNodeInterface} = grapqlSequelize.relay;
@@ -128,12 +126,11 @@ const postTagConnection = sequelizeConnection({
 });
 
 
-
 const peopleConnection = sequelizeConnection({
   name: 'People',
   nodeType: personType,
   target: Person,
-  orderBy: new GraphQLEnumStringInputType({
+  orderBy: new GraphQLEnumType({
     name: 'PeopleConnectionOrder',
     values: {
       firstNameASC: {value: ['firstName', 'ASC']},
