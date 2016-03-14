@@ -90,7 +90,7 @@ class PersonListItemList extends React.Component {
     );
   }
   render() {
-    const count = this.props.viewer.people.count;
+    const {count, edges} = this.props.viewer.people;
     return (
       <section className="main">
         <h1>PersonListItems</h1>
@@ -108,7 +108,7 @@ class PersonListItemList extends React.Component {
           </select>
         </p>
         {this.state.isLoading && <p>Loading..</p>}
-        <p>Showing <strong>{this.props.relay.variables.limit}</strong> of the total <strong>{count}</strong> matches.</p>
+        <p>Showing <strong>{edges.length}</strong> of the total <strong>{count}</strong> matches.</p>
         <ul className="person-list">
           {this.renderPersonListItems()}
         </ul>
