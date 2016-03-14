@@ -149,7 +149,7 @@ const peopleConnection = sequelizeConnection({
   connectionFields: {
     count: { 
       type: GraphQLInt, 
-      resolve: () => 0,
+      resolve: () => -1,
     }
   },
   interfaces: [nodeInterface],
@@ -168,7 +168,7 @@ const postsConnection = sequelizeConnection({
   connectionFields: {
     count: { 
       type: GraphQLInt, 
-      resolve: () => 0,
+      resolve: () => -1,
     }
   }
 });
